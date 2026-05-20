@@ -1,0 +1,132 @@
+[{
+  "_id": {
+    "$oid": "69c26f1289cc65539133c016"
+  },
+  "title": "Set Up and Run FastAPI App",
+  "language": "BASH",
+  "code": "python3.11 -m venv venv\nsource venv/bin/activate\npip install -r requirements.txt\nuvicorn main:app --reload",
+  "description": "Create a virtual environment, install dependencies, and start the FastAPI development server with auto reload.",
+  "tags": [
+    "python",
+    "fastapi",
+    "backend",
+    "setup",
+    "dev"
+  ],
+  "times_copied": 0,
+  "created_at": {
+    "$date": "2026-03-24T11:01:38.817Z"
+  },
+  "updated_at": {
+    "$date": "2026-03-24T11:26:10.062Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69c26f1689cc65539133c017"
+  },
+  "title": "Start Frontend Dev Server",
+  "language": "BASH",
+  "code": "npm run dev",
+  "description": "Start the frontend development server for local development.",
+  "tags": [
+    "frontend",
+    "npm",
+    "dev",
+    "vite",
+    "react"
+  ],
+  "times_copied": 2,
+  "created_at": {
+    "$date": "2026-03-24T11:01:42.199Z"
+  },
+  "updated_at": {
+    "$date": "2026-03-24T11:20:35.846Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69c26f1a89cc65539133c018"
+  },
+  "title": "Start PocketBase in Dev Mode",
+  "language": "BASH",
+  "code": "./pocketbase serve --dev --migrationsDir ./pb_migrations_dev",
+  "description": "Start PocketBase in development mode using the custom development migrations directory.",
+  "tags": [
+    "pocketbase",
+    "backend",
+    "dev",
+    "migrations"
+  ],
+  "times_copied": 1,
+  "created_at": {
+    "$date": "2026-03-24T11:01:46.070Z"
+  },
+  "updated_at": {
+    "$date": "2026-03-24T11:20:37.764Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69c26f1e89cc65539133c019"
+  },
+  "title": "Build Frontend for Production",
+  "language": "bash",
+  "code": "npm run build",
+  "description": "Build the frontend into production-ready assets.",
+  "tags": [
+    "frontend",
+    "npm",
+    "build",
+    "production"
+  ],
+  "times_copied": 0,
+  "created_at": {
+    "$date": "2026-03-24T11:01:50.228Z"
+  },
+  "updated_at": {
+    "$date": "2026-03-24T11:01:50.228Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69c26f2189cc65539133c01a"
+  },
+  "title": "Deploy Project with Wrangler",
+  "language": "BASH",
+  "code": "npx wrangler deploy",
+  "description": "Deploy a Cloudflare Workers or Pages project using Wrangler.",
+  "tags": [
+    "cloudflare",
+    "wrangler",
+    "deploy"
+  ],
+  "times_copied": 1,
+  "created_at": {
+    "$date": "2026-03-24T11:01:53.881Z"
+  },
+  "updated_at": {
+    "$date": "2026-04-01T07:18:32.068Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69c26f4b89cc65539133c01d"
+  },
+  "title": "Install Python Requirements",
+  "language": "bash",
+  "code": "pip install -r requirements.txt",
+  "description": "Install Python dependencies from the requirements.txt file.",
+  "tags": [
+    "python",
+    "pip",
+    "dependencies"
+  ],
+  "times_copied": 0,
+  "created_at": {
+    "$date": "2026-03-24T11:02:35.739Z"
+  },
+  "updated_at": {
+    "$date": "2026-03-24T11:02:35.739Z"
+  }
+}]

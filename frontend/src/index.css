@@ -1,0 +1,128 @@
+/*
+  Theme — clean white / blue / slate-black
+  ─────────────────────────────────────────
+  Light:  white base, slate-900 text, blue-600 accent
+  Dark:   slate-950 base, slate-200 text, blue-400 accent
+*/
+
+:root {
+  /* ── Semantic tokens (light) ────────────────────────────── */
+  --text:          #64748b;  /* slate-500  — body copy             */
+  --text-h:        #0f172a;  /* slate-900  — headings / strong     */
+  --bg:            #ffffff;  /* white      — page surface          */
+  --bg-subtle:     #f8fafc;  /* slate-50   — secondary surface     */
+  --border:        #e2e8f0;  /* slate-200  — dividers              */
+  --code-bg:       #f1f5f9;  /* slate-100  — code blocks           */
+  --accent:        #2563eb;  /* blue-600   — primary actions       */
+  --accent-bg:     rgba(37, 99, 235, 0.07);
+  --accent-border: rgba(37, 99, 235, 0.30);
+  --accent-hover:  #1d4ed8;  /* blue-700   — button hover          */
+  --social-bg:     #f1f5f9;  /* slate-100  — tag / chip bg         */
+  --danger:        #dc2626;  /* red-600    — destructive actions    */
+  --shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.07),
+    0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.08),
+    0 4px 6px -4px rgba(0, 0, 0, 0.04);
+
+  /* ── Typography ─────────────────────────────────────────── */
+  --sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --heading: var(--sans);
+  --mono: 'SF Mono', 'Fira Code', 'Fira Mono', ui-monospace, Consolas, monospace;
+
+  font: 15px/1.6 var(--sans);
+  letter-spacing: -0.01em;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+/* ── Dark mode — toggled via data-theme attribute ─────────── */
+[data-theme="dark"] {
+  --text:          #94a3b8;  /* slate-400  */
+  --text-h:        #f1f5f9;  /* slate-100  */
+  --bg:            #0f172a;  /* slate-900  */
+  --bg-subtle:     #1e293b;  /* slate-800  */
+  --border:        #334155;  /* slate-700  */
+  --code-bg:       #1e293b;  /* slate-800  */
+  --accent:        #60a5fa;  /* blue-400   */
+  --accent-bg:     rgba(96, 165, 250, 0.10);
+  --accent-border: rgba(96, 165, 250, 0.30);
+  --accent-hover:  #93bbfd;  /* blue-300   */
+  --social-bg:     #1e293b;  /* slate-800  */
+  --danger:        #f87171;  /* red-400    */
+  --shadow:
+    0 1px 3px rgba(0, 0, 0, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.15);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.30),
+    0 2px 4px -2px rgba(0, 0, 0, 0.20);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.35),
+    0 4px 6px -4px rgba(0, 0, 0, 0.20);
+  color-scheme: dark;
+}
+
+/* ── Layout ───────────────────────────────────────────────── */
+body {
+  margin: 0;
+  background: var(--bg-subtle);
+}
+
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ── Base typography ──────────────────────────────────────── */
+h1, h2 {
+  font-family: var(--heading);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 2rem;
+  letter-spacing: -0.03em;
+  margin: 24px 0;
+}
+
+h2 {
+  font-size: 1rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+}
+
+p { margin: 0; }
+
+code, .counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 2px 6px;
+  background: var(--code-bg);
+}
