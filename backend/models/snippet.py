@@ -21,11 +21,13 @@ class SnippetUpdate(BaseModel):
 
 class SnippetResponse(BaseModel):
     id: str
+    owner_id: Optional[str] = None
     title: str
     language: str
     code: str
     description: Optional[str] = None
     tags: list[str] = []
+    is_public: bool = True
     times_copied: int = 0
     created_at: datetime
     updated_at: datetime

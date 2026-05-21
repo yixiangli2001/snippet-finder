@@ -4,6 +4,7 @@ from bson import ObjectId
 import pytest
 from pydantic import ValidationError
 
+from models.snippet import SnippetResponse
 from models.user import UserCreate, UserResponse, UserInDB
 
 
@@ -100,3 +101,20 @@ def test_user_in_db_accepts_mongo_record_shape():
     assert user.id == str(user_id)
     assert user.password_hash == "hashed-password"
     assert user.role == "user"
+
+
+# --- SnippetResponse ---
+
+def test_snippet_response_defaults_to_public_legacy_snippet():
+    now = datetime.now(timezone.utc)
+    snippet = SnippetResponse(
+        id="507f1f77bcf86cd799439011",
+        title="hello",
+        language="python",
+        code="print('hi')",
+        created_at=now,
+        updated_at=now,
+    )
+
+    assert snippet.owner_id is None
+    assert snippet.is_public is True
