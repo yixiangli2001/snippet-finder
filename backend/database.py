@@ -8,4 +8,6 @@ MONGO_URL = os.getenv("MONGO_URL")
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client["snippet_finder"]
+
 snippets_collection = db["snippets"]
+users_collection = db["users"]
