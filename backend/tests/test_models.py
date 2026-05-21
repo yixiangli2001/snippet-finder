@@ -56,6 +56,11 @@ def test_user_create_rejects_whitespace_only_password():
         UserCreate(username="alice", email="alice@example.com", password="        ")
 
 
+def test_user_create_rejects_password_too_long_for_bcrypt():
+    with pytest.raises(ValidationError):
+        UserCreate(username="alice", email="alice@example.com", password="a" * 73)
+
+
 # --- UserResponse ---
 
 def test_user_response_contains_only_safe_public_fields():

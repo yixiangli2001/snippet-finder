@@ -3,6 +3,8 @@ from datetime import datetime
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from utils.password_rules import MAX_BCRYPT_PASSWORD_BYTES, MIN_PASSWORD_CHARACTERS
+
 
 class UserCreate(BaseModel):
     """Input model for registration. Contains raw password — never stored or returned."""
@@ -25,8 +27,10 @@ class UserCreate(BaseModel):
         stripped_password = password.strip()
         if not stripped_password:
             raise ValueError("password must not be empty")
-        if len(stripped_password) < 8:
-            raise ValueError("password must be at least 8 characters")
+        if len(stripped_password) < MIN_PASSWORD_CHARACTERS:
+            raise ValueError(f"password must be at least {MIN_PASSWORD_CHARACTERS} characters")
+        if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+            raise ValueError(f"password must be at most {MAX_BCRYPT_PASSWORD_BYTES} bytes")
         return password
 
 
