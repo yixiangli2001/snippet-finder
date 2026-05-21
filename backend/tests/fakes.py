@@ -29,6 +29,11 @@ class FakeCollection:
             return True
 
         for key, expected in query.items():
+            if key == "$and":
+                if not all(self._matches(document, option) for option in expected):
+                    return False
+                continue
+
             if key == "$or":
                 if not any(self._matches(document, option) for option in expected):
                     return False
