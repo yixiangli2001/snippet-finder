@@ -145,3 +145,19 @@ async def increment_copy(snippet_id: str):
         raise HTTPException(status_code=404, detail="Snippet not found")
     return {"message": "Copy count updated"}
 
+
+@router.patch("/{snippet_id}/visibility", response_model=SnippetResponse)
+async def toggle_visibility(
+    snippet_id: str,
+    current_user: UserInDB = Depends(get_current_user),
+):
+    existing = await get_snippet_for_change(snippet_id, current_user)
+    result = await snippets_collection.find_one_and_update(
+        {"_id": existing["_id"]},
+        {"$set": {
+            "is_public": not existing.get("is_public", True),
+            "updated_at": datetime.now(timezone.utc),
+        }},
+        return_document=True
+    )
+    return format_snippet(result)

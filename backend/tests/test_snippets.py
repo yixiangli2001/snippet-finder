@@ -146,3 +146,17 @@ def test_owner_can_update_snippet(monkeypatch):
     assert response.status_code == 200
     assert response.json()["title"] == "updated"
 
+
+def test_owner_can_toggle_visibility(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    private = snippet("secret", owner_id=alice["_id"], is_public=False)
+    use_fake_data(monkeypatch, [private], [alice, make_user("bob@example.com", "bob")])
+    client = TestClient(app)
+
+    response = client.patch(
+        f"/snippets/{private['_id']}/visibility",
+        headers=auth_header(alice),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["is_public"] is True
