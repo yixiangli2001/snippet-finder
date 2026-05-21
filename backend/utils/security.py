@@ -18,6 +18,8 @@ from utils.password_rules import MAX_BCRYPT_PASSWORD_BYTES
 load_dotenv()
 
 MIN_SECRET_KEY_LENGTH = 32
+
+
 def get_required_secret_key() -> str:
     """Return the JWT secret key, or fail fast if it is unsafe."""
     secret_key = os.getenv("SECRET_KEY")
