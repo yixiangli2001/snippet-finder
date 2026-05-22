@@ -183,6 +183,9 @@
 }
 
 .snippet-btn--danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--sans);
   font-size: 13px;
   font-weight: 500;
@@ -418,6 +421,10 @@
 }
 
 .snippet-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-family: var(--sans);
   font-size: 13px;
   font-weight: 500;

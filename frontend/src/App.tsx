@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { AuthModal } from './components/AuthModal';
+import { SettingsModal } from './components/SettingsModal';
 import CodeSnippet from './components/CodeSnippet';
 import CreateSnippetModal from './components/CreateSnippetModal';
 import SearchBar from './components/SearchBar';
-import { MoonIcon, SunIcon } from './components/Icons';
+import { ChevronDownIcon, LogOutIcon, MoonIcon, SunIcon, UserIcon } from './components/Icons';
 import { useSnippets } from './hooks/useSnippets';
 import { useSearch } from './hooks/useSearch';
 import { useTheme } from './hooks/useTheme';
@@ -26,6 +27,19 @@ export default function App() {
   const { theme, toggleTheme } = useTheme();
   const [showCreate, setShowCreate] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (loading) {
     return (
@@ -97,9 +111,40 @@ export default function App() {
 
           {!auth.loadingUser && (
             auth.user ? (
-              <div className="header-user-wrap">
-                <span className="header-user-chip">{auth.user.username}</span>
-                <button className="header-auth-btn" onClick={auth.logout}>Logout</button>
+              <div className="user-dropdown-wrap" ref={dropdownRef}>
+                <button 
+                  className="header-user-btn" 
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  aria-expanded={userDropdownOpen}
+                >
+                  <span className="header-user-btn-name">{auth.user.username}</span>
+                  <span className="header-user-btn-chevron">
+                    <ChevronDownIcon />
+                  </span>
+                </button>
+                {userDropdownOpen && (
+                  <div className="user-dropdown">
+                    <button 
+                      className="user-dropdown-item" 
+                      onClick={() => {
+                        setShowSettings(true);
+                        setUserDropdownOpen(false);
+                      }}
+                    >
+                      <UserIcon /> Account Settings
+                    </button>
+                    <div className="user-dropdown-divider" />
+                    <button 
+                      className="user-dropdown-item user-dropdown-item--danger" 
+                      onClick={() => {
+                        auth.logout();
+                        setUserDropdownOpen(false);
+                      }}
+                    >
+                      <LogOutIcon /> Logout
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <button className="header-auth-btn" onClick={() => setShowAuth(true)}>Log in</button>
@@ -147,6 +192,16 @@ export default function App() {
           onLogin={auth.login}
           onRegister={auth.register}
           onClose={() => setShowAuth(false)}
+        />
+      )}
+
+      {showSettings && auth.user && (
+        <SettingsModal
+          user={auth.user}
+          onUpdateProfile={auth.updateProfile}
+          onUpdatePassword={auth.updatePassword}
+          onDeleteAccount={auth.deleteAccount}
+          onClose={() => setShowSettings(false)}
         />
       )}
     </div>
