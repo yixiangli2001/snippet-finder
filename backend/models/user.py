@@ -34,6 +34,45 @@ class UserCreate(BaseModel):
         return password
 
 
+class UpdateUsername(BaseModel):
+    """Input model for changing the current user's username."""
+
+    username: str
+
+    @field_validator("username")
+    @classmethod
+    def username_must_not_be_empty(cls, username: str) -> str:
+        stripped_username = username.strip()
+        if not stripped_username:
+            raise ValueError("username must not be empty")
+        return stripped_username
+
+
+class UpdateEmail(BaseModel):
+    """Input model for changing the current user's email address."""
+
+    email: EmailStr
+
+
+class UpdatePassword(BaseModel):
+    """Input model for changing the current user's password."""
+
+    current_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def new_password_must_be_useful(cls, password: str) -> str:
+        stripped_password = password.strip()
+        if not stripped_password:
+            raise ValueError("password must not be empty")
+        if len(stripped_password) < MIN_PASSWORD_CHARACTERS:
+            raise ValueError(f"password must be at least {MIN_PASSWORD_CHARACTERS} characters")
+        if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+            raise ValueError(f"password must be at most {MAX_BCRYPT_PASSWORD_BYTES} bytes")
+        return password
+
+
 class UserResponse(BaseModel):
     """API response model. Safe to send to clients — contains no password data."""
 
