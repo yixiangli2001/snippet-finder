@@ -48,6 +48,22 @@
   padding: 2px 7px;
 }
 
+.snippet-visibility {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--social-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.snippet-visibility--public {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
 .snippet-title {
   font-size: 14px;
   font-weight: 600;

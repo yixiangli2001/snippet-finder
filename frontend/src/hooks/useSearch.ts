@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { API } from '../constants';
 import { type Snippet } from '../components/CodeSnippet';
+import { authHeaders } from '../utils/auth';
 
-export function useSearch(onCopy: (id: string) => void) {
+export function useSearch(onCopy: (id: string) => void, token: string | null) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Snippet[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +19,9 @@ export function useSearch(onCopy: (id: string) => void) {
     }
     const debounceTimer = setTimeout(async () => {
       try {
-        const res = await fetch(`${API}/snippets/?search=${encodeURIComponent(trimmedQuery)}`);
+        const res = await fetch(`${API}/snippets/?search=${encodeURIComponent(trimmedQuery)}`, {
+          headers: authHeaders(token),
+        });
         if (!res.ok) return;
         const data: Snippet[] = await res.json();
         setResults(data);
@@ -29,7 +32,7 @@ export function useSearch(onCopy: (id: string) => void) {
       }
     }, 300);
     return () => clearTimeout(debounceTimer);
-  }, [query]);
+  }, [query, token]);
 
   function updateQuery(nextQuery: string) {
     setQuery(nextQuery);

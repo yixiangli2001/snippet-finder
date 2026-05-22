@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { API } from '../constants';
 import { type Snippet } from './CodeSnippet';
 import { FormField } from './FormField';
+import { authHeaders } from '../utils/auth';
 
 const EMPTY_FORM = { title: '', language: '', code: '', description: '', tags: '' };
 
 interface Props {
+  token: string;
   onClose: () => void;
   onCreate: (snippet: Snippet) => void;
 }
 
-export default function CreateSnippetModal({ onClose, onCreate }: Props) {
+export default function CreateSnippetModal({ token, onClose, onCreate }: Props) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -34,9 +36,9 @@ export default function CreateSnippetModal({ onClose, onCreate }: Props) {
     if (Object.keys(errs).length > 0) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API}/snippets/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+	      const res = await fetch(`${API}/snippets/`, {
+	        method: 'POST',
+	        headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
         body: JSON.stringify({
           title: form.title,
           language: form.language.toUpperCase(),

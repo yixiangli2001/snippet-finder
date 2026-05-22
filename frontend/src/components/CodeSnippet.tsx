@@ -6,22 +6,28 @@ import { CopyIcon, CheckIcon } from "./Icons";
 
 export interface Snippet {
   id: string;
+  owner_id: string | null;
   title: string;
   language: string;
   code: string;
   description: string;
   tags: string[];
+  is_public: boolean;
   times_copied: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface Props {
   snippet: Snippet;
+  canEdit?: boolean;
   onCopy?: (id: string) => void;
   onDelete?: (id: string) => void;
   onEdit?: (id: string, updated: Partial<Snippet>) => void;
+  onToggleVisibility?: (id: string) => void;
 }
 
-export default function CodeSnippet({ snippet, onCopy, onDelete, onEdit }: Props) {
+export default function CodeSnippet({ snippet, canEdit = false, onCopy, onDelete, onEdit, onToggleVisibility }: Props) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -152,23 +158,35 @@ export default function CodeSnippet({ snippet, onCopy, onDelete, onEdit }: Props
         <div className="snippet-header-top">
           <div className="snippet-meta">
             <span className="snippet-lang">{snippet.language}</span>
+            <span className={snippet.is_public ? "snippet-visibility snippet-visibility--public" : "snippet-visibility"}>
+              {snippet.is_public ? "Public" : "Private"}
+            </span>
           </div>
-          <div className="snippet-actions">
-            <button
-              className="snippet-action-btn"
-              onClick={() => setIsEditing(true)}
-              aria-label="Edit snippet"
-            >
-              Edit
-            </button>
-            <button
-              className="snippet-action-btn snippet-action-btn--delete"
-              onClick={() => setConfirmingDelete(true)}
-              aria-label="Delete snippet"
-            >
-              Delete
-            </button>
-          </div>
+          {canEdit && (
+            <div className="snippet-actions">
+              <button
+                className="snippet-action-btn"
+                onClick={() => onToggleVisibility?.(snippet.id)}
+                aria-label={snippet.is_public ? "Make snippet private" : "Make snippet public"}
+              >
+                {snippet.is_public ? "Make private" : "Make public"}
+              </button>
+              <button
+                className="snippet-action-btn"
+                onClick={() => setIsEditing(true)}
+                aria-label="Edit snippet"
+              >
+                Edit
+              </button>
+              <button
+                className="snippet-action-btn snippet-action-btn--delete"
+                onClick={() => setConfirmingDelete(true)}
+                aria-label="Delete snippet"
+              >
+                Delete
+              </button>
+            </div>
+          )}
         </div>
         <h2 className="snippet-title">{snippet.title}</h2>
         {snippet.description && (

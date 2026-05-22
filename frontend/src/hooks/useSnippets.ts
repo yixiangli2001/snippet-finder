@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { API } from '../constants';
 import { type Snippet } from '../components/CodeSnippet';
+import { authHeaders } from '../utils/auth';
 
 function valuesMatch(current: Snippet, optimistic: Snippet, updated: Partial<Snippet>) {
   return Object.keys(updated).every((key) => {
@@ -17,13 +18,15 @@ function valuesMatch(current: Snippet, optimistic: Snippet, updated: Partial<Sni
   });
 }
 
-export function useSnippets() {
+export function useSnippets(token: string | null) {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API}/snippets`)
+    setLoading(true);
+    setError(null);
+    fetch(`${API}/snippets`, { headers: authHeaders(token) })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -31,7 +34,7 @@ export function useSnippets() {
       .then((data: Snippet[]) => setSnippets(data))
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [token]);
 
   function addSnippet(snippet: Snippet) {
     setSnippets((prev) => [snippet, ...prev]);
@@ -53,7 +56,10 @@ export function useSnippets() {
     setSnippets((prev) => prev.filter((s) => s.id !== id));
 
     try {
-      const res = await fetch(`${API}/snippets/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API}/snippets/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders(token),
+      });
       if (!res.ok) throw new Error(`Delete failed (HTTP ${res.status})`);
     } catch (err) {
       setSnippets((prev) => {
@@ -76,7 +82,7 @@ export function useSnippets() {
     try {
       const res = await fetch(`${API}/snippets/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
         body: JSON.stringify(updated),
       });
       if (!res.ok) throw new Error(`Update failed (HTTP ${res.status})`);
@@ -91,5 +97,26 @@ export function useSnippets() {
     }
   }
 
-  return { snippets, loading, error, addSnippet, handleCopy, handleDelete, handleEdit };
+  async function handleToggleVisibility(id: string) {
+    const previousSnippet = snippets.find((s) => s.id === id);
+    if (!previousSnippet) return;
+    const optimisticSnippet = { ...previousSnippet, is_public: !previousSnippet.is_public };
+
+    setSnippets((prev) => prev.map((s) => (s.id === id ? optimisticSnippet : s)));
+
+    try {
+      const res = await fetch(`${API}/snippets/${id}/visibility`, {
+        method: 'PATCH',
+        headers: authHeaders(token),
+      });
+      if (!res.ok) throw new Error(`Visibility update failed (HTTP ${res.status})`);
+      const updatedSnippet: Snippet = await res.json();
+      setSnippets((prev) => prev.map((s) => (s.id === id ? updatedSnippet : s)));
+    } catch (err) {
+      setSnippets((prev) => prev.map((s) => (s.id === id ? previousSnippet : s)));
+      alert((err as Error).message);
+    }
+  }
+
+  return { snippets, loading, error, addSnippet, handleCopy, handleDelete, handleEdit, handleToggleVisibility };
 }
