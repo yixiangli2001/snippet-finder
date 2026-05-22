@@ -4,7 +4,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, field_validator
 
-from database import users_collection
+from database import snippets_collection, users_collection
 from models.user import UserInDB, UserResponse
 from routers.auth import format_user
 from utils.password_rules import MAX_BCRYPT_PASSWORD_BYTES, MIN_PASSWORD_CHARACTERS
@@ -108,3 +108,26 @@ async def update_email(
         return_document=True,
     )
     return format_user(updated)
+
+
+@router.delete("/me")
+async def delete_account(current_user: UserInDB = Depends(get_current_user)):
+    user_id = ObjectId(current_user.id)
+
+    await snippets_collection.delete_many({
+        "owner_id": user_id,
+        "is_public": False,
+    })
+    await snippets_collection.update_many(
+        {
+            "owner_id": user_id,
+            "is_public": True,
+        },
+        {"$set": {
+            "owner_id": None,
+            "updated_at": datetime.now(timezone.utc),
+        }},
+    )
+    await users_collection.find_one_and_delete({"_id": user_id})
+
+    return {"message": "Account deleted"}

@@ -13,6 +13,11 @@ class UpdateResult:
         self.matched_count = matched_count
 
 
+class DeleteResult:
+    def __init__(self, deleted_count: int):
+        self.deleted_count = deleted_count
+
+
 class FakeCollection:
     def __init__(self, documents=None):
         self.documents = []
@@ -94,10 +99,35 @@ class FakeCollection:
                 return UpdateResult(1)
         return UpdateResult(0)
 
+    async def update_many(self, query, update):
+        matched_count = 0
+        for document in self.documents:
+            if self._matches(document, query):
+                if "$set" in update:
+                    document.update(update["$set"])
+                matched_count += 1
+        return UpdateResult(matched_count)
+
+    async def delete_many(self, query):
+        kept = []
+        deleted_count = 0
+        for document in self.documents:
+            if self._matches(document, query):
+                deleted_count += 1
+            else:
+                kept.append(document)
+        self.documents = kept
+        return DeleteResult(deleted_count)
+
 
 class FakeCursor:
     def __init__(self, documents):
         self.documents = documents
+
+    def sort(self, field_name, direction):
+        reverse = direction < 0
+        self.documents.sort(key=lambda document: document.get(field_name), reverse=reverse)
+        return self
 
     async def to_list(self, limit):
         return self.documents[:limit]
