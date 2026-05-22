@@ -51,5 +51,76 @@ export function useAuth() {
     setUser(null);
   }
 
-  return { token, user, loadingUser: Boolean(token && !user), login, register, logout };
+  async function updateProfile(updates: { email?: string; username?: string }) {
+    let latest: User | null = null;
+
+    if (updates.username && updates.username !== user?.username) {
+      const res = await fetch(`${API}/users/me/username`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+        body: JSON.stringify({ username: updates.username }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const detail = Array.isArray(body.detail) ? body.detail[0]?.msg : body.detail;
+        throw new Error(detail || 'Failed to update username');
+      }
+      latest = await res.json();
+    }
+
+    if (updates.email && updates.email !== user?.email) {
+      const res = await fetch(`${API}/users/me/email`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+        body: JSON.stringify({ email: updates.email }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const detail = Array.isArray(body.detail) ? body.detail[0]?.msg : body.detail;
+        throw new Error(detail || 'Failed to update email');
+      }
+      latest = await res.json();
+    }
+
+    if (latest) {
+      storeUser(latest);
+      setUser(latest);
+    }
+  }
+
+  async function updatePassword(oldPassword: string, newPassword: string) {
+    const res = await fetch(`${API}/users/me/password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify({ current_password: oldPassword, new_password: newPassword }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const detail = Array.isArray(body.detail) ? body.detail[0]?.msg : body.detail;
+      throw new Error(detail || 'Failed to update password');
+    }
+  }
+
+  async function deleteAccount() {
+    const res = await fetch(`${API}/users/me`, {
+      method: 'DELETE',
+      headers: authHeaders(token),
+    });
+    if (!res.ok) throw new Error('Failed to delete account');
+    clearStoredAuth();
+    setToken(null);
+    setUser(null);
+  }
+
+  return { 
+    token, 
+    user, 
+    loadingUser: Boolean(token && !user), 
+    login, 
+    register, 
+    logout, 
+    updateProfile, 
+    updatePassword, 
+    deleteAccount 
+  };
 }
