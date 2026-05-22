@@ -2,48 +2,13 @@ from datetime import datetime, timezone
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr, field_validator
 
 from database import snippets_collection, users_collection
-from models.user import UserInDB, UserResponse
+from models.user import UpdateEmail, UpdatePassword, UpdateUsername, UserInDB, UserResponse
 from routers.auth import format_user
-from utils.password_rules import MAX_BCRYPT_PASSWORD_BYTES, MIN_PASSWORD_CHARACTERS
 from utils.security import get_current_user, hash_password, verify_password
 
 router = APIRouter()
-
-
-class UpdateUsername(BaseModel):
-    username: str
-
-    @field_validator("username")
-    @classmethod
-    def username_must_not_be_empty(cls, username: str) -> str:
-        stripped_username = username.strip()
-        if not stripped_username:
-            raise ValueError("username must not be empty")
-        return stripped_username
-
-
-class UpdateEmail(BaseModel):
-    email: EmailStr
-
-
-class UpdatePassword(BaseModel):
-    current_password: str
-    new_password: str
-
-    @field_validator("new_password")
-    @classmethod
-    def new_password_must_be_useful(cls, password: str) -> str:
-        stripped_password = password.strip()
-        if not stripped_password:
-            raise ValueError("password must not be empty")
-        if len(stripped_password) < MIN_PASSWORD_CHARACTERS:
-            raise ValueError(f"password must be at least {MIN_PASSWORD_CHARACTERS} characters")
-        if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
-            raise ValueError(f"password must be at most {MAX_BCRYPT_PASSWORD_BYTES} bytes")
-        return password
 
 
 @router.get("/me", response_model=UserResponse)
