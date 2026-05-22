@@ -124,3 +124,71 @@ def test_update_email_rejects_duplicate(monkeypatch):
     )
 
     assert response.status_code == 409
+
+
+def test_update_password_changes_password(monkeypatch):
+    use_fake_users(monkeypatch)
+    client = TestClient(app)
+    token = register_and_login(client)
+
+    response = client.put(
+        "/users/me/password",
+        json={"current_password": "securepass", "new_password": "newsecurepass"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Password updated"
+
+    login_with_old_password = client.post(
+        "/auth/login",
+        json={"email": "alice@example.com", "password": "securepass"},
+    )
+    login_with_new_password = client.post(
+        "/auth/login",
+        json={"email": "alice@example.com", "password": "newsecurepass"},
+    )
+    assert login_with_old_password.status_code == 401
+    assert login_with_new_password.status_code == 200
+
+
+def test_update_password_rejects_wrong_current_password(monkeypatch):
+    use_fake_users(monkeypatch)
+    client = TestClient(app)
+    token = register_and_login(client)
+
+    response = client.put(
+        "/users/me/password",
+        json={"current_password": "wrongpass", "new_password": "newsecurepass"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 400
+
+
+def test_update_password_rejects_short_new_password(monkeypatch):
+    use_fake_users(monkeypatch)
+    client = TestClient(app)
+    token = register_and_login(client)
+
+    response = client.put(
+        "/users/me/password",
+        json={"current_password": "securepass", "new_password": "short"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_password_rejects_too_long_new_password(monkeypatch):
+    use_fake_users(monkeypatch)
+    client = TestClient(app)
+    token = register_and_login(client)
+
+    response = client.put(
+        "/users/me/password",
+        json={"current_password": "securepass", "new_password": "a" * 73},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 422
