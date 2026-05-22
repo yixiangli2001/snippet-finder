@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import { SettingsModal } from './components/SettingsModal';
 import CodeSnippet from './components/CodeSnippet';
@@ -25,6 +26,7 @@ export default function App() {
   } = useSnippets(auth.token);
   const search = useSearch(handleCopy, auth.token);
   const { theme, toggleTheme } = useTheme();
+  const [view, setView] = useState<'home' | 'admin'>('home');
   const [showCreate, setShowCreate] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -109,6 +111,15 @@ export default function App() {
             <span className="header-add-btn-icon">+</span>
           </button>
 
+          {auth.user?.role === 'admin' && (
+            <button
+              className={`header-admin-btn${view === 'admin' ? ' header-admin-btn--active' : ''}`}
+              onClick={() => setView(v => v === 'admin' ? 'home' : 'admin')}
+            >
+              Admin
+            </button>
+          )}
+
           {!auth.loadingUser && (
             auth.user ? (
               <div className="user-dropdown-wrap" ref={dropdownRef}>
@@ -162,7 +173,15 @@ export default function App() {
         </div>
       </header>
 
-      <div className="snippet-grid">
+      {view === 'admin' && auth.user ? (
+        <AdminPanel
+          token={auth.token || ''}
+          currentUserId={auth.user.id}
+          onBack={() => setView('home')}
+        />
+      ) : null}
+
+      <div className={view === 'admin' ? 'snippet-grid snippet-grid--hidden' : 'snippet-grid'}>
         {snippets.map((snippet) => (
           <CodeSnippet
             key={snippet.id}
