@@ -80,7 +80,7 @@ async def get_snippets(
         filters.append({"language": language})
 
     query = filters[0] if len(filters) == 1 else {"$and": filters}
-    snippets = await snippets_collection.find(query).to_list(100)
+    snippets = await snippets_collection.find(query).sort("created_at", -1).to_list(100)
     return [format_snippet(s) for s in snippets]
 
 
