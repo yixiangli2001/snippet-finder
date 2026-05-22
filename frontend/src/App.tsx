@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
@@ -26,12 +27,13 @@ export default function App() {
   } = useSnippets(auth.token);
   const search = useSearch(handleCopy, auth.token);
   const { theme, toggleTheme } = useTheme();
-  const [view, setView] = useState<'home' | 'admin'>('home');
   const [showCreate, setShowCreate] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -113,8 +115,8 @@ export default function App() {
 
           {auth.user?.role === 'admin' && (
             <button
-              className={`header-admin-btn${view === 'admin' ? ' header-admin-btn--active' : ''}`}
-              onClick={() => setView(v => v === 'admin' ? 'home' : 'admin')}
+              className={`header-admin-btn${location.pathname === '/admin' ? ' header-admin-btn--active' : ''}`}
+              onClick={() => navigate(location.pathname === '/admin' ? '/' : '/admin')}
             >
               Admin
             </button>
@@ -123,8 +125,8 @@ export default function App() {
           {!auth.loadingUser && (
             auth.user ? (
               <div className="user-dropdown-wrap" ref={dropdownRef}>
-                <button 
-                  className="header-user-btn" 
+                <button
+                  className="header-user-btn"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   aria-expanded={userDropdownOpen}
                 >
@@ -135,8 +137,8 @@ export default function App() {
                 </button>
                 {userDropdownOpen && (
                   <div className="user-dropdown">
-                    <button 
-                      className="user-dropdown-item" 
+                    <button
+                      className="user-dropdown-item"
                       onClick={() => {
                         setShowSettings(true);
                         setUserDropdownOpen(false);
@@ -145,8 +147,8 @@ export default function App() {
                       <UserIcon /> Account Settings
                     </button>
                     <div className="user-dropdown-divider" />
-                    <button 
-                      className="user-dropdown-item user-dropdown-item--danger" 
+                    <button
+                      className="user-dropdown-item user-dropdown-item--danger"
                       onClick={() => {
                         auth.logout();
                         setUserDropdownOpen(false);
@@ -173,27 +175,28 @@ export default function App() {
         </div>
       </header>
 
-      {view === 'admin' && auth.user ? (
-        <AdminPanel
-          token={auth.token || ''}
-          currentUserId={auth.user.id}
-          onBack={() => setView('home')}
-        />
-      ) : null}
-
-      <div className={view === 'admin' ? 'snippet-grid snippet-grid--hidden' : 'snippet-grid'}>
-        {snippets.map((snippet) => (
-          <CodeSnippet
-            key={snippet.id}
-            snippet={snippet}
-            canEdit={Boolean(auth.user && snippet.owner_id === auth.user.id)}
-            onCopy={handleCopy}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-            onToggleVisibility={handleToggleVisibility}
-          />
-        ))}
-      </div>
+      <Routes>
+        <Route path="/" element={
+          <div className="snippet-grid">
+            {snippets.map((snippet) => (
+              <CodeSnippet
+                key={snippet.id}
+                snippet={snippet}
+                canEdit={Boolean(auth.user && snippet.owner_id === auth.user.id)}
+                onCopy={handleCopy}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                onToggleVisibility={handleToggleVisibility}
+              />
+            ))}
+          </div>
+        } />
+        <Route path="/admin" element={
+          auth.user?.role === 'admin'
+            ? <AdminPanel token={auth.token || ''} currentUserId={auth.user.id} onBack={() => navigate('/')} />
+            : <Navigate to="/" replace />
+        } />
+      </Routes>
 
       {showCreate && (
         <CreateSnippetModal
