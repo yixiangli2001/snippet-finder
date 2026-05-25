@@ -3,15 +3,20 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import './App.css';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
+import CollectionCard from './components/CollectionCard';
+import CreateCollectionModal from './components/CreateCollectionModal';
 import { SettingsModal } from './components/SettingsModal';
 import CodeSnippet from './components/CodeSnippet';
 import CreateSnippetModal from './components/CreateSnippetModal';
 import SearchBar from './components/SearchBar';
 import { ChevronDownIcon, LogOutIcon, MoonIcon, SunIcon, UserIcon } from './components/Icons';
 import { useSnippets } from './hooks/useSnippets';
+import { useCollections } from './hooks/useCollections';
 import { useSearch } from './hooks/useSearch';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
+
+type HomeView = 'snippets' | 'collections';
 
 export default function App() {
   const auth = useAuth();
@@ -25,9 +30,20 @@ export default function App() {
     handleEdit,
     handleToggleVisibility,
   } = useSnippets(auth.token);
+  const {
+    collections,
+    loading: collectionsLoading,
+    error: collectionsError,
+    addCollection,
+    handleDelete: handleDeleteCollection,
+    handleEdit: handleEditCollection,
+    handleToggleVisibility: handleToggleCollectionVisibility,
+  } = useCollections(auth.token);
   const search = useSearch(handleCopy, auth.token);
   const { theme, toggleTheme } = useTheme();
+  const [homeView, setHomeView] = useState<HomeView>('snippets');
   const [showCreate, setShowCreate] = useState(false);
+  const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -103,15 +119,30 @@ export default function App() {
             Snippet <span>Finder</span>
           </span>
           <SearchBar {...search} />
-          <button
-            className="header-add-btn"
-            onClick={() => setShowCreate(true)}
-            disabled={!auth.user}
-            title={auth.user ? "Add snippet" : "Log in to add snippets"}
-          >
-            <span className="header-add-btn-text">Add Snippet</span>
-            <span className="header-add-btn-icon">+</span>
-          </button>
+
+          {location.pathname === '/' && homeView === 'snippets' && (
+            <button
+              className="header-add-btn"
+              onClick={() => setShowCreate(true)}
+              disabled={!auth.user}
+              title={auth.user ? 'Add snippet' : 'Log in to add snippets'}
+            >
+              <span className="header-add-btn-text">Add Snippet</span>
+              <span className="header-add-btn-icon">+</span>
+            </button>
+          )}
+
+          {location.pathname === '/' && homeView === 'collections' && (
+            <button
+              className="header-add-btn"
+              onClick={() => setShowCreateCollection(true)}
+              disabled={!auth.user}
+              title={auth.user ? 'Add collection' : 'Log in to add collections'}
+            >
+              <span className="header-add-btn-text">Add Collection</span>
+              <span className="header-add-btn-icon">+</span>
+            </button>
+          )}
 
           {auth.user?.role === 'admin' && (
             <button
@@ -139,20 +170,14 @@ export default function App() {
                   <div className="user-dropdown">
                     <button
                       className="user-dropdown-item"
-                      onClick={() => {
-                        setShowSettings(true);
-                        setUserDropdownOpen(false);
-                      }}
+                      onClick={() => { setShowSettings(true); setUserDropdownOpen(false); }}
                     >
                       <UserIcon /> Account Settings
                     </button>
                     <div className="user-dropdown-divider" />
                     <button
                       className="user-dropdown-item user-dropdown-item--danger"
-                      onClick={() => {
-                        auth.logout();
-                        setUserDropdownOpen(false);
-                      }}
+                      onClick={() => { auth.logout(); setUserDropdownOpen(false); }}
                     >
                       <LogOutIcon /> Logout
                     </button>
@@ -177,19 +202,75 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={
-          <div className="snippet-grid">
-            {snippets.map((snippet) => (
-              <CodeSnippet
-                key={snippet.id}
-                snippet={snippet}
-                canEdit={Boolean(auth.user && snippet.owner_id === auth.user.id)}
-                onCopy={handleCopy}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onToggleVisibility={handleToggleVisibility}
-              />
-            ))}
-          </div>
+          <>
+            <div className="view-tabs">
+              <button
+                className={`view-tab${homeView === 'snippets' ? ' view-tab--active' : ''}`}
+                onClick={() => setHomeView('snippets')}
+              >
+                Snippets
+              </button>
+              <button
+                className={`view-tab${homeView === 'collections' ? ' view-tab--active' : ''}`}
+                onClick={() => setHomeView('collections')}
+              >
+                Collections
+              </button>
+            </div>
+
+            {homeView === 'snippets' ? (
+              <div className="snippet-grid">
+                {snippets.map(snippet => (
+                  <CodeSnippet
+                    key={snippet.id}
+                    snippet={snippet}
+                    canEdit={Boolean(auth.user && snippet.owner_id === auth.user.id)}
+                    onCopy={handleCopy}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                    onToggleVisibility={handleToggleVisibility}
+                  />
+                ))}
+              </div>
+            ) : collectionsLoading ? (
+              <div className="snippet-grid">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="skeleton-card">
+                    <div className="skeleton-card-header">
+                      <div className="skeleton skeleton-badge" />
+                      <div className="skeleton skeleton-title" />
+                    </div>
+                    <div className="skeleton skeleton-code" />
+                    <div className="skeleton-card-footer">
+                      <div className="skeleton skeleton-tag" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : collectionsError ? (
+              <div className="error-state">
+                <p className="error-state-icon">!</p>
+                <p className="error-state-title">Failed to load collections</p>
+                <p className="error-state-detail">{collectionsError}</p>
+                <button className="snippet-btn snippet-btn--primary" onClick={() => window.location.reload()}>
+                  Retry
+                </button>
+              </div>
+            ) : (
+              <div className="collection-grid">
+                {collections.map(col => (
+                  <CollectionCard
+                    key={col.id}
+                    collection={col}
+                    currentUser={auth.user}
+                    onDelete={handleDeleteCollection}
+                    onEdit={handleEditCollection}
+                    onToggleVisibility={handleToggleCollectionVisibility}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         } />
         <Route path="/admin" element={
           auth.user?.role === 'admin'
@@ -202,10 +283,15 @@ export default function App() {
         <CreateSnippetModal
           token={auth.token || ''}
           onClose={() => setShowCreate(false)}
-          onCreate={(snippet) => {
-            addSnippet(snippet);
-            setShowCreate(false);
-          }}
+          onCreate={snippet => { addSnippet(snippet); setShowCreate(false); }}
+        />
+      )}
+
+      {showCreateCollection && (
+        <CreateCollectionModal
+          token={auth.token || ''}
+          onClose={() => setShowCreateCollection(false)}
+          onCreate={col => { addCollection(col); setShowCreateCollection(false); }}
         />
       )}
 
