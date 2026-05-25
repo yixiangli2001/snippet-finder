@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { API } from '../constants';
 import { authHeaders } from '../utils/auth';
 import { type Collection } from '../types/collection';
@@ -8,15 +8,24 @@ export function useCollections(token: string | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const refreshCollections = useCallback(async () => {
     setLoading(true);
     setError(null);
-    fetch(`${API}/collections/`, { headers: authHeaders(token) })
-      .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
-      .then((data: Collection[]) => setCollections(data))
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    try {
+      const res = await fetch(`${API}/collections/`, { headers: authHeaders(token) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: Collection[] = await res.json();
+      setCollections(data);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   }, [token]);
+
+  useEffect(() => {
+    refreshCollections();
+  }, [refreshCollections]);
 
   function addCollection(col: Collection) {
     setCollections(prev => [col, ...prev]);
@@ -32,8 +41,7 @@ export function useCollections(token: string | null) {
       if (!res.ok) throw new Error('Delete failed');
     } catch {
       // Re-fetch to restore state if delete failed
-      const res = await fetch(`${API}/collections/`, { headers: authHeaders(token) });
-      if (res.ok) setCollections(await res.json());
+      await refreshCollections();
     }
   }
 
@@ -67,5 +75,14 @@ export function useCollections(token: string | null) {
     }
   }
 
-  return { collections, loading, error, addCollection, handleDelete, handleEdit, handleToggleVisibility };
+  return {
+    collections,
+    loading,
+    error,
+    refreshCollections,
+    addCollection,
+    handleDelete,
+    handleEdit,
+    handleToggleVisibility,
+  };
 }

@@ -4,6 +4,7 @@ import './App.css';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import CollectionCard from './components/CollectionCard';
+import CollectionPage from './components/CollectionPage';
 import CreateCollectionModal from './components/CreateCollectionModal';
 import { SettingsModal } from './components/SettingsModal';
 import CodeSnippet from './components/CodeSnippet';
@@ -34,6 +35,7 @@ export default function App() {
     collections,
     loading: collectionsLoading,
     error: collectionsError,
+    refreshCollections,
     addCollection,
     handleDelete: handleDeleteCollection,
     handleEdit: handleEditCollection,
@@ -224,11 +226,13 @@ export default function App() {
                   <CodeSnippet
                     key={snippet.id}
                     snippet={snippet}
+                    token={auth.token || undefined}
                     canEdit={Boolean(auth.user && snippet.owner_id === auth.user.id)}
                     onCopy={handleCopy}
                     onDelete={handleDelete}
                     onEdit={handleEdit}
                     onToggleVisibility={handleToggleVisibility}
+                    onCollectionChanged={refreshCollections}
                   />
                 ))}
               </div>
@@ -271,6 +275,13 @@ export default function App() {
               </div>
             )}
           </>
+        } />
+        <Route path="/collections/:id" element={
+          <CollectionPage
+            currentUserId={auth.user?.id || null}
+            token={auth.token || undefined}
+            onCollectionChanged={refreshCollections}
+          />
         } />
         <Route path="/admin" element={
           auth.user?.role === 'admin'

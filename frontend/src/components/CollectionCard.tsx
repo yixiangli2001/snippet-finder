@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { type Collection } from '../types/collection';
 import { type User } from '../utils/auth';
+import { EditIcon, EyeIcon, EyeOffIcon, TrashIcon, CheckIcon } from './Icons';
 
 interface Props {
   collection: Collection;
@@ -11,6 +13,7 @@ interface Props {
 }
 
 export default function CollectionCard({ collection, currentUser, onDelete, onEdit, onToggleVisibility }: Props) {
+  const navigate = useNavigate();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(collection.name);
@@ -67,7 +70,7 @@ export default function CollectionCard({ collection, currentUser, onDelete, onEd
   }
 
   return (
-    <div className="collection-card">
+    <div className="collection-card" onClick={() => navigate(`/collections/${collection.id}`)}>
       <div className="collection-card-header">
         <div className="collection-card-meta">
           <span className={`snippet-visibility${collection.is_public ? ' snippet-visibility--public' : ''}`}>
@@ -82,30 +85,41 @@ export default function CollectionCard({ collection, currentUser, onDelete, onEd
             <button
               className="snippet-action-btn"
               onClick={() => onToggleVisibility(collection.id)}
+              title={collection.is_public ? "Make private" : "Make public"}
             >
-              {collection.is_public ? 'Make private' : 'Make public'}
+              {collection.is_public ? <EyeOffIcon /> : <EyeIcon />}
             </button>
-            <button className="snippet-action-btn" onClick={() => setIsEditing(true)}>
-              Edit
+            <button
+              className="snippet-action-btn"
+              onClick={() => setIsEditing(true)}
+              title="Edit collection"
+            >
+              <EditIcon />
             </button>
             {confirmingDelete ? (
               <>
                 <button
                   className="snippet-action-btn snippet-action-btn--delete"
                   onClick={() => onDelete(collection.id)}
+                  title="Confirm delete"
                 >
-                  Confirm
+                  <CheckIcon />
                 </button>
-                <button className="snippet-action-btn" onClick={() => setConfirmingDelete(false)}>
-                  Cancel
+                <button
+                  className="snippet-action-btn"
+                  onClick={() => setConfirmingDelete(false)}
+                  title="Cancel delete"
+                >
+                  ×
                 </button>
               </>
             ) : (
               <button
                 className="snippet-action-btn snippet-action-btn--delete"
                 onClick={() => setConfirmingDelete(true)}
+                title="Delete collection"
               >
-                Delete
+                <TrashIcon />
               </button>
             )}
           </div>
