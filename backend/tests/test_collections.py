@@ -7,6 +7,7 @@ import utils.security as security
 import utils.user_lookup as user_lookup
 from main import app
 from tests.fakes import FakeCollection
+from utils.security import create_token
 
 
 def setup(monkeypatch, collections=None, snippets=None):
@@ -181,6 +182,42 @@ def test_owner_can_update_collection(monkeypatch):
     body = response.json()
     assert body["name"] == "New name"
     assert body["is_public"] is True
+
+
+def test_cannot_make_collection_public_with_private_snippets(monkeypatch):
+    users, col_collection, snippet_collection, client = setup(monkeypatch)
+    token = register_and_login(client)
+    user_id = users.documents[0]["_id"]
+    private_snippet_id = ObjectId()
+    snippet_collection.documents.append({
+        "_id": private_snippet_id,
+        "owner_id": user_id,
+        "title": "Private snippet",
+        "language": "PYTHON",
+        "code": "print('secret')",
+        "description": "",
+        "tags": [],
+        "is_public": False,
+        "times_copied": 0,
+        "created_at": "2026-01-01",
+        "updated_at": "2026-01-01",
+    })
+    col_collection.documents.append(
+        {"owner_id": user_id, "name": "Private collection", "is_public": False,
+         "snippet_ids": [private_snippet_id], "description": None,
+         "created_at": "2026-01-01", "updated_at": "2026-01-01",
+         "_id": ObjectId()}
+    )
+    col_id = col_collection.documents[0]["_id"]
+
+    response = client.put(
+        f"/collections/{col_id}",
+        json={"is_public": True},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 400
+    assert col_collection.documents[0]["is_public"] is False
 
 
 def test_no_op_collection_update_keeps_owner_username(monkeypatch):

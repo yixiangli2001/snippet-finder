@@ -43,6 +43,19 @@ async def get_collection_for_change(collection_id: str, user: UserInDB) -> dict:
     return col
 
 
+async def contains_private_snippets(col: dict) -> bool:
+    """Return True when a collection contains snippets that are not public."""
+    snippet_ids = col.get("snippet_ids", [])
+    if not snippet_ids:
+        return False
+
+    private_snippets = await snippets_collection.find({
+        "_id": {"$in": snippet_ids},
+        "is_public": False,
+    }).to_list(1)
+    return len(private_snippets) > 0
+
+
 @router.get("/", response_model=list[CollectionResponse])
 async def get_collections(
     owner_id: str | None = None,
@@ -116,6 +129,12 @@ async def update_collection(
     if not updates:
         username = await get_owner_username(col.get("owner_id"))
         return format_collection(col, username)
+
+    if updates.get("is_public") is True and await contains_private_snippets(col):
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot make a collection public while it contains private snippets",
+        )
 
     updates["updated_at"] = datetime.now(timezone.utc)
     result = await collections_collection.find_one_and_update(
