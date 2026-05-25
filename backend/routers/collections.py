@@ -16,7 +16,9 @@ def format_collection(col: dict, owner_username: str | None = None) -> dict:
     """Convert a MongoDB document to a client-safe dict (ObjectIds → strings)."""
     formatted = {**col, "id": str(col["_id"])}
     del formatted["_id"]
-    formatted["owner_id"] = str(formatted["owner_id"])
+    if formatted.get("owner_id") is not None:
+        formatted["owner_id"] = str(formatted["owner_id"])
+    formatted.setdefault("owner_id", None)
     formatted["snippet_ids"] = [str(sid) for sid in formatted.get("snippet_ids", [])]
     formatted["owner_username"] = owner_username
     return formatted

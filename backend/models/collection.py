@@ -47,7 +47,7 @@ class CollectionResponse(BaseModel):
     """API response model for a collection."""
 
     id: str
-    owner_id: str
+    owner_id: Optional[str] = None
     owner_username: Optional[str] = None
     name: str
     description: Optional[str] = None

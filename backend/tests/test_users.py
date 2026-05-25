@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 import routers.auth as auth_router
+import routers.collections as collections_router
 import routers.snippets as snippets_router
 import routers.users as users_router
 import utils.security as security
@@ -21,6 +22,18 @@ def fake_snippet(owner_id, title, is_public):
     }
 
 
+def fake_collection(owner_id, name, is_public, snippet_ids=None):
+    return {
+        "owner_id": owner_id,
+        "name": name,
+        "description": None,
+        "snippet_ids": snippet_ids or [],
+        "is_public": is_public,
+        "created_at": "2026-01-01",
+        "updated_at": "2026-01-01",
+    }
+
+
 def use_fake_users(monkeypatch):
     users = FakeCollection()
     monkeypatch.setattr(auth_router, "users_collection", users)
@@ -32,9 +45,19 @@ def use_fake_users(monkeypatch):
 def use_fake_users_and_snippets(monkeypatch, snippets=None):
     users = use_fake_users(monkeypatch)
     snippet_collection = FakeCollection(snippets or [])
+    collection_collection = FakeCollection()
     monkeypatch.setattr(users_router, "snippets_collection", snippet_collection)
+    monkeypatch.setattr(users_router, "collections_collection", collection_collection)
     monkeypatch.setattr(snippets_router, "snippets_collection", snippet_collection)
     return users, snippet_collection
+
+
+def use_fake_users_snippets_and_collections(monkeypatch, snippets=None, collections=None):
+    users, snippet_collection = use_fake_users_and_snippets(monkeypatch, snippets)
+    collection_collection = FakeCollection(collections or [])
+    monkeypatch.setattr(users_router, "collections_collection", collection_collection)
+    monkeypatch.setattr(collections_router, "collections_collection", collection_collection)
+    return users, snippet_collection, collection_collection
 
 
 def register_and_login(client, email="alice@example.com", username="alice"):
@@ -233,6 +256,24 @@ def test_delete_account_removes_private_snippets_and_orphans_public_snippets(mon
     remaining_titles = {snippet["title"] for snippet in snippets.documents}
     assert remaining_titles == {"public"}
     assert snippets.documents[0]["owner_id"] is None
+
+
+def test_delete_account_removes_private_collections_and_orphans_public_collections(monkeypatch):
+    users, _, collections = use_fake_users_snippets_and_collections(monkeypatch)
+    client = TestClient(app)
+    token = register_and_login(client)
+    user = users.documents[0]
+    collections.documents.extend([
+        fake_collection(user["_id"], "private collection", False),
+        fake_collection(user["_id"], "public collection", True),
+    ])
+
+    response = client.delete("/users/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    remaining_names = {collection["name"] for collection in collections.documents}
+    assert remaining_names == {"public collection"}
+    assert collections.documents[0]["owner_id"] is None
 
 
 def test_delete_account_removes_user_record(monkeypatch):

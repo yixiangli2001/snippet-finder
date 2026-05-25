@@ -58,6 +58,9 @@ class FakeCollection:
                         return False
                 else:
                     return False
+            elif isinstance(actual, list):
+                if expected not in actual:
+                    return False
             elif actual != expected:
                 return False
 
@@ -116,6 +119,10 @@ class FakeCollection:
             if self._matches(document, query):
                 if "$set" in update:
                     document.update(update["$set"])
+                if "$pull" in update:
+                    for key, value in update["$pull"].items():
+                        if key in document:
+                            document[key] = [i for i in document[key] if i != value]
                 matched_count += 1
         return UpdateResult(matched_count)
 

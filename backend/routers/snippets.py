@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 import re
 
-from database import snippets_collection
+from database import collections_collection, snippets_collection
 from models.snippet import SnippetCreate, SnippetUpdate, SnippetResponse
 from models.user import UserInDB
 from utils.security import get_current_user, get_optional_user
@@ -143,6 +143,11 @@ async def delete_snippet(
     )
     if not result:
         raise HTTPException(status_code=404, detail="Snippet not found")
+
+    await collections_collection.update_many(
+        {"snippet_ids": existing["_id"]},
+        {"$pull": {"snippet_ids": existing["_id"]}},
+    )
     return {"message": "Snippet deleted"}
 
 
