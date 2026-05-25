@@ -3,20 +3,22 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 
-from database import collections_collection, snippets_collection
+from database import collections_collection
 from models.collection import CollectionCreate, CollectionResponse, CollectionUpdate
 from models.user import UserInDB
 from utils.security import get_current_user, get_optional_user
+from utils.user_lookup import build_username_map, get_owner_username
 
 router = APIRouter()
 
 
-def format_collection(col: dict) -> dict:
+def format_collection(col: dict, owner_username: str | None = None) -> dict:
     """Convert a MongoDB document to a client-safe dict (ObjectIds → strings)."""
     formatted = {**col, "id": str(col["_id"])}
     del formatted["_id"]
     formatted["owner_id"] = str(formatted["owner_id"])
     formatted["snippet_ids"] = [str(sid) for sid in formatted.get("snippet_ids", [])]
+    formatted["owner_username"] = owner_username
     return formatted
 
 
@@ -49,7 +51,8 @@ async def get_collections(
     else:
         query = {"is_public": True}
     cols = await collections_collection.find(query).sort("created_at", -1).to_list(100)
-    return [format_collection(c) for c in cols]
+    username_map = await build_username_map(cols)
+    return [format_collection(c, username_map.get(c.get("owner_id"))) for c in cols]
 
 
 @router.post("/", response_model=CollectionResponse)
@@ -70,7 +73,7 @@ async def create_collection(
     }
     result = await collections_collection.insert_one(data)
     created = await collections_collection.find_one({"_id": result.inserted_id})
-    return format_collection(created)
+    return format_collection(created, current_user.username)
 
 
 @router.get("/{collection_id}", response_model=CollectionResponse)
@@ -89,7 +92,8 @@ async def get_collection(
     if not col.get("is_public") and not is_owner and not is_admin:
         raise HTTPException(status_code=404, detail="Collection not found")
 
-    return format_collection(col)
+    username = await get_owner_username(col.get("owner_id"))
+    return format_collection(col, username)
 
 
 @router.put("/{collection_id}", response_model=CollectionResponse)
@@ -102,7 +106,8 @@ async def update_collection(
     col = await get_collection_for_change(collection_id, current_user)
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
     if not updates:
-        return format_collection(col)
+        username = await get_owner_username(col.get("owner_id"))
+        return format_collection(col, username)
 
     updates["updated_at"] = datetime.now(timezone.utc)
     result = await collections_collection.find_one_and_update(
@@ -110,7 +115,8 @@ async def update_collection(
         {"$set": updates},
         return_document=True,
     )
-    return format_collection(result)
+    username = await get_owner_username(result.get("owner_id"))
+    return format_collection(result, username)
 
 
 @router.delete("/{collection_id}")

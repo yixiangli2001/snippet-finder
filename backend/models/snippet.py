@@ -22,6 +22,7 @@ class SnippetUpdate(BaseModel):
 class SnippetResponse(BaseModel):
     id: str
     owner_id: Optional[str] = None
+    owner_username: Optional[str] = None
     title: str
     language: str
     code: str

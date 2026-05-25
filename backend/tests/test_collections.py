@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 import routers.auth as auth_router
 import routers.collections as collections_router
 import utils.security as security
+import utils.user_lookup as user_lookup
 from main import app
 from tests.fakes import FakeCollection
 
@@ -15,6 +16,7 @@ def setup(monkeypatch, collections=None):
     monkeypatch.setattr(auth_router, "users_collection", users)
     monkeypatch.setattr(security, "users_collection", users)
     monkeypatch.setattr(collections_router, "collections_collection", col_collection)
+    monkeypatch.setattr(user_lookup, "users_collection", users)
 
     client = TestClient(app)
     return users, col_collection, client
@@ -101,17 +103,27 @@ def test_create_collection_sets_owner_and_private_by_default(monkeypatch):
 
 
 def test_get_public_collection_without_auth(monkeypatch):
-    owner_id = ObjectId()
-    _, col_collection, client = setup(monkeypatch, [
-        {"owner_id": owner_id, "name": "Public", "is_public": True, "snippet_ids": [],
+    owner = {
+        "_id": ObjectId(),
+        "email": "owner@example.com",
+        "username": "owner",
+        "password_hash": "hash",
+        "role": "user",
+        "created_at": "2026-01-01",
+        "updated_at": "2026-01-01",
+    }
+    users, col_collection, client = setup(monkeypatch, [
+        {"owner_id": owner["_id"], "name": "Public", "is_public": True, "snippet_ids": [],
          "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
     ])
+    users.documents.append(owner)
     col_id = col_collection.documents[0]["_id"]
 
     response = client.get(f"/collections/{col_id}")
 
     assert response.status_code == 200
     assert response.json()["name"] == "Public"
+    assert response.json()["owner_username"] == "owner"
 
 
 def test_get_private_collection_returns_404_to_non_owner(monkeypatch):
@@ -167,6 +179,27 @@ def test_owner_can_update_collection(monkeypatch):
     body = response.json()
     assert body["name"] == "New name"
     assert body["is_public"] is True
+
+
+def test_no_op_collection_update_keeps_owner_username(monkeypatch):
+    users, col_collection, client = setup(monkeypatch)
+    token = register_and_login(client)
+    user = users.documents[0]
+    col_collection.documents.append(
+        {"owner_id": user["_id"], "name": "Same name", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01",
+         "updated_at": "2026-01-01", "_id": ObjectId()}
+    )
+    col_id = col_collection.documents[0]["_id"]
+
+    response = client.put(
+        f"/collections/{col_id}",
+        json={},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["owner_username"] == "alice"
 
 
 def test_non_owner_cannot_update_collection(monkeypatch):

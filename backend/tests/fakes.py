@@ -53,6 +53,9 @@ class FakeCollection:
                 elif "$regex" in expected:
                     if expected["$regex"].lower() not in str(actual or "").lower():
                         return False
+                elif "$in" in expected:
+                    if actual not in expected["$in"]:
+                        return False
                 else:
                     return False
             elif actual != expected:

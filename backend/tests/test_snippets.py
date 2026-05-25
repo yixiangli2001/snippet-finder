@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 import routers.snippets as snippets_router
 import utils.security as security
+import utils.user_lookup as user_lookup
 from main import app
 from tests.fakes import FakeCollection
 from utils.security import create_token, hash_password
@@ -37,6 +38,7 @@ def use_fake_data(monkeypatch, snippets=None, user_documents=None):
     snippet_collection = FakeCollection(snippets or [])
     monkeypatch.setattr(security, "users_collection", users)
     monkeypatch.setattr(snippets_router, "snippets_collection", snippet_collection)
+    monkeypatch.setattr(user_lookup, "users_collection", users)
     return user_documents[0], user_documents[1], snippet_collection
 
 

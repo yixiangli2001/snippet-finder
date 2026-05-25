@@ -7,17 +7,19 @@ from database import snippets_collection
 from models.snippet import SnippetCreate, SnippetUpdate, SnippetResponse
 from models.user import UserInDB
 from utils.security import get_current_user, get_optional_user
+from utils.user_lookup import build_username_map, get_owner_username
 
 router = APIRouter()
 
 
-def format_snippet(snippet: dict) -> dict:
+def format_snippet(snippet: dict, owner_username: str | None = None) -> dict:
     formatted = {**snippet, "id": str(snippet["_id"])}
     del formatted["_id"]
     if formatted.get("owner_id") is not None:
         formatted["owner_id"] = str(formatted["owner_id"])
     formatted.setdefault("owner_id", None)
     formatted.setdefault("is_public", True)
+    formatted["owner_username"] = owner_username
     return formatted
 
 
@@ -81,7 +83,8 @@ async def get_snippets(
 
     query = filters[0] if len(filters) == 1 else {"$and": filters}
     snippets = await snippets_collection.find(query).sort("created_at", -1).to_list(100)
-    return [format_snippet(s) for s in snippets]
+    username_map = await build_username_map(snippets)
+    return [format_snippet(s, username_map.get(s.get("owner_id"))) for s in snippets]
 
 
 @router.post("/", response_model=SnippetResponse)
@@ -99,7 +102,7 @@ async def create_snippet(
 
     result = await snippets_collection.insert_one(data)
     created = await snippets_collection.find_one({"_id": result.inserted_id})
-    return format_snippet(created)
+    return format_snippet(created, current_user.username)
 
 
 @router.put("/{snippet_id}", response_model=SnippetResponse)
@@ -117,7 +120,8 @@ async def update_snippet(
         {"$set": data},
         return_document=True
     )
-    return format_snippet(result)
+    username = await get_owner_username(result.get("owner_id"))
+    return format_snippet(result, username)
 
 
 @router.delete("/{snippet_id}")
@@ -160,4 +164,5 @@ async def toggle_visibility(
         }},
         return_document=True
     )
-    return format_snippet(result)
+    username = await get_owner_username(result.get("owner_id"))
+    return format_snippet(result, username)

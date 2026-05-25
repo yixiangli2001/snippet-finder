@@ -48,6 +48,7 @@ class CollectionResponse(BaseModel):
 
     id: str
     owner_id: str
+    owner_username: Optional[str] = None
     name: str
     description: Optional[str] = None
     snippet_ids: list[str] = []
