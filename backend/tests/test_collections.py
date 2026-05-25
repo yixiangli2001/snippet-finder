@@ -73,6 +73,35 @@ def test_authenticated_user_sees_own_private_collections(monkeypatch):
     assert "Their private" not in names
 
 
+def test_admin_sees_all_private_collections(monkeypatch):
+    users, col_collection, _, client = setup(monkeypatch)
+
+    admin_id = ObjectId()
+    users.documents.append({
+        "_id": admin_id,
+        "email": "admin@example.com",
+        "username": "admin",
+        "password_hash": "$2b$12$placeholder",
+        "role": "admin",
+        "created_at": "2026-01-01T00:00:00",
+        "updated_at": "2026-01-01T00:00:00",
+    })
+
+    other_id = ObjectId()
+    col_collection.documents.extend([
+        {"_id": ObjectId(), "owner_id": other_id, "name": "Their private", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+        {"_id": ObjectId(), "owner_id": other_id, "name": "Their public", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+    ])
+
+    token = create_token(str(admin_id), "admin")
+    response = client.get("/collections/", headers={"Authorization": f"Bearer {token}"})
+
+    names = {c["name"] for c in response.json()}
+    assert names == {"Their private", "Their public"}
+
+
 # ── POST /collections ─────────────────────────────────────────
 
 

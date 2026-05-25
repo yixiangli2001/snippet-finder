@@ -65,6 +65,9 @@ async def get_snippets(
     if owner_id:
         # Profile page: show only the public snippets of a specific user.
         filters.append({"owner_id": parse_object_id(owner_id, "owner id"), "is_public": True})
+    elif current_user and current_user.role == "admin":
+        # Admins see everything, no visibility filter applied.
+        pass
     elif current_user:
         filters.append({
             "$or": [
@@ -92,7 +95,12 @@ async def get_snippets(
     if language:
         filters.append({"language": language})
 
-    query = filters[0] if len(filters) == 1 else {"$and": filters}
+    if not filters:
+        query = {}
+    elif len(filters) == 1:
+        query = filters[0]
+    else:
+        query = {"$and": filters}
     snippets = await snippets_collection.find(query).sort("created_at", -1).to_list(100)
     username_map = await build_username_map(snippets)
     return [format_snippet(s, username_map.get(s.get("owner_id"))) for s in snippets]

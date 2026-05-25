@@ -65,6 +65,9 @@ async def get_collections(
     if owner_id:
         # Profile page: show only the public collections of a specific user.
         query = {"owner_id": parse_object_id(owner_id, "owner id"), "is_public": True}
+    elif current_user and current_user.role == "admin":
+        # Admins see everything, including private collections of any user.
+        query = {}
     elif current_user:
         query = {"$or": [{"is_public": True}, {"owner_id": ObjectId(current_user.id)}]}
     else:

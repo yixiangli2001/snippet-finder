@@ -11,13 +11,13 @@ from tests.fakes import FakeCollection
 from utils.security import create_token, hash_password
 
 
-def make_user(email: str, username: str):
+def make_user(email: str, username: str, role: str = "user"):
     return {
         "_id": ObjectId(),
         "email": email,
         "username": username,
         "password_hash": hash_password("securepass"),
-        "role": "user",
+        "role": role,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
     }
@@ -89,6 +89,23 @@ def test_logged_in_user_sees_own_private_snippets(monkeypatch):
 
     assert response.status_code == 200
     assert [item["title"] for item in response.json()] == ["own private"]
+
+
+def test_admin_sees_all_private_snippets(monkeypatch):
+    admin = make_user("admin@example.com", "admin", role="admin")
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    alice_private = snippet("alice private", owner_id=alice["_id"], is_public=False)
+    bob_private = snippet("bob private", owner_id=bob["_id"], is_public=False)
+    public = snippet("public", owner_id=alice["_id"], is_public=True)
+    use_fake_data(monkeypatch, [alice_private, bob_private, public], [admin, alice, bob])
+    client = TestClient(app)
+
+    response = client.get("/snippets/", headers=auth_header(admin))
+
+    assert response.status_code == 200
+    titles = {item["title"] for item in response.json()}
+    assert titles == {"alice private", "bob private", "public"}
 
 
 def test_get_public_snippet_by_id_without_login(monkeypatch):
