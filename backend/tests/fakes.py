@@ -81,7 +81,15 @@ class FakeCollection:
     async def find_one_and_update(self, query, update, return_document=True):
         for document in self.documents:
             if self._matches(document, query):
-                document.update(update.get("$set", {}))
+                if "$set" in update:
+                    document.update(update["$set"])
+                if "$push" in update:
+                    for key, value in update["$push"].items():
+                        document.setdefault(key, []).append(value)
+                if "$pull" in update:
+                    for key, value in update["$pull"].items():
+                        if key in document:
+                            document[key] = [i for i in document[key] if i != value]
                 return deepcopy(document)
         return None
 

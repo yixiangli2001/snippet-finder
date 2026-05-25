@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 
-from database import collections_collection
-from models.collection import CollectionCreate, CollectionResponse, CollectionUpdate
+from database import collections_collection, snippets_collection
+from models.collection import AddSnippet, CollectionCreate, CollectionResponse, CollectionUpdate
 from models.user import UserInDB
 from utils.security import get_current_user, get_optional_user
 from utils.user_lookup import build_username_map, get_owner_username
@@ -119,6 +119,62 @@ async def update_collection(
     result = await collections_collection.find_one_and_update(
         {"_id": col["_id"]},
         {"$set": updates},
+        return_document=True,
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    username = await get_owner_username(result.get("owner_id"))
+    return format_collection(result, username)
+
+
+@router.post("/{collection_id}/snippets", response_model=CollectionResponse)
+async def add_snippet_to_collection(
+    collection_id: str,
+    body: AddSnippet,
+    current_user: UserInDB = Depends(get_current_user),
+):
+    """Add a snippet to a collection. The snippet must be visible to the user."""
+    col = await get_collection_for_change(collection_id, current_user)
+
+    snippet_object_id = parse_object_id(body.snippet_id, "snippet id")
+    snippet = await snippets_collection.find_one({"_id": snippet_object_id})
+    if not snippet:
+        raise HTTPException(status_code=404, detail="Snippet not found")
+
+    # Users can only add snippets they are allowed to view.
+    is_public = snippet.get("is_public", True)
+    is_snippet_owner = snippet.get("owner_id") == ObjectId(current_user.id)
+    if not is_public and not is_snippet_owner and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="You cannot add a snippet you cannot view")
+
+    # Public collections may only contain public snippets.
+    if col.get("is_public") and not is_public:
+        raise HTTPException(status_code=400, detail="Cannot add a private snippet to a public collection")
+
+    result = await collections_collection.find_one_and_update(
+        {"_id": col["_id"]},
+        {"$push": {"snippet_ids": snippet_object_id}},
+        return_document=True,
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    username = await get_owner_username(result.get("owner_id"))
+    return format_collection(result, username)
+
+
+@router.delete("/{collection_id}/snippets/{snippet_id}", response_model=CollectionResponse)
+async def remove_snippet_from_collection(
+    collection_id: str,
+    snippet_id: str,
+    current_user: UserInDB = Depends(get_current_user),
+):
+    """Remove a snippet from a collection."""
+    col = await get_collection_for_change(collection_id, current_user)
+    snippet_object_id = parse_object_id(snippet_id, "snippet id")
+
+    result = await collections_collection.find_one_and_update(
+        {"_id": col["_id"]},
+        {"$pull": {"snippet_ids": snippet_object_id}},
         return_document=True,
     )
     if not result:
