@@ -20,7 +20,7 @@ export default function CollectionCard({ collection, currentUser, onDelete, onEd
   const [editDesc, setEditDesc] = useState(collection.description ?? '');
   const [saving, setSaving] = useState(false);
 
-  const isOwner = currentUser && collection.owner_id === currentUser.id;
+  const canEdit = currentUser && (collection.owner_id === currentUser.id || currentUser.role === 'admin');
   const snippetCount = collection.snippet_ids.length;
 
   async function handleEditSubmit(e: React.FormEvent) {
@@ -80,7 +80,7 @@ export default function CollectionCard({ collection, currentUser, onDelete, onEd
             {snippetCount} {snippetCount === 1 ? 'snippet' : 'snippets'}
           </span>
         </div>
-        {isOwner && (
+        {canEdit && (
           <div className="collection-card-actions" onClick={e => e.stopPropagation()}>
             <button
               className="snippet-action-btn"

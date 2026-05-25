@@ -228,7 +228,7 @@ export default function App() {
                     snippet={snippet}
                     token={auth.token || undefined}
                     currentUserId={auth.user?.id || null}
-                    canEdit={Boolean(auth.user && snippet.owner_id === auth.user.id)}
+                    canEdit={Boolean(auth.user && (snippet.owner_id === auth.user.id || auth.user.role === 'admin'))}
                     onCopy={handleCopy}
                     onDelete={handleDelete}
                     onEdit={handleEdit}
@@ -279,7 +279,7 @@ export default function App() {
         } />
         <Route path="/collections/:id" element={
           <CollectionPage
-            currentUserId={auth.user?.id || null}
+            currentUser={auth.user}
             token={auth.token || undefined}
             onCollectionChanged={refreshCollections}
           />

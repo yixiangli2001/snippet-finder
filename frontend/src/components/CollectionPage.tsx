@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API } from '../constants';
-import { authHeaders } from '../utils/auth';
+import { authHeaders, type User } from '../utils/auth';
 import { type Collection } from '../types/collection';
 import { type Snippet } from './CodeSnippet';
 import CodeSnippet from './CodeSnippet';
 
 interface Props {
-  currentUserId: string | null;
+  currentUser: User | null;
   token?: string;
   onCollectionChanged?: () => void;
 }
 
-export default function CollectionPage({ currentUserId, token, onCollectionChanged }: Props) {
+export default function CollectionPage({ currentUser, token, onCollectionChanged }: Props) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [collection, setCollection] = useState<Collection | null>(null);
@@ -107,7 +107,7 @@ export default function CollectionPage({ currentUserId, token, onCollectionChang
     );
   }
 
-  const isOwner = currentUserId && collection.owner_id === currentUserId;
+  const canManageCollection = currentUser && (collection.owner_id === currentUser.id || currentUser.role === 'admin');
 
   return (
     <div className="collection-page-wrap">
@@ -141,9 +141,9 @@ export default function CollectionPage({ currentUserId, token, onCollectionChang
               key={snippet.id}
               snippet={snippet}
               token={token}
-              canEdit={Boolean(currentUserId && snippet.owner_id === currentUserId)}
+              canEdit={Boolean(currentUser && (snippet.owner_id === currentUser.id || currentUser.role === 'admin'))}
               onCopy={() => {}}
-              onRemove={isOwner ? handleRemoveSnippet : undefined}
+              onRemove={canManageCollection ? handleRemoveSnippet : undefined}
               onCollectionChanged={onCollectionChanged}
             />
           ))}
