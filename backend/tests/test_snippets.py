@@ -91,6 +91,42 @@ def test_logged_in_user_sees_own_private_snippets(monkeypatch):
     assert [item["title"] for item in response.json()] == ["own private"]
 
 
+def test_get_public_snippet_by_id_without_login(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    public = snippet("public", owner_id=alice["_id"], is_public=True)
+    use_fake_data(monkeypatch, [public], [alice, make_user("bob@example.com", "bob")])
+    client = TestClient(app)
+
+    response = client.get(f"/snippets/{public['_id']}")
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "public"
+
+
+def test_owner_can_get_private_snippet_by_id(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    private = snippet("private", owner_id=alice["_id"], is_public=False)
+    use_fake_data(monkeypatch, [private], [alice, make_user("bob@example.com", "bob")])
+    client = TestClient(app)
+
+    response = client.get(f"/snippets/{private['_id']}", headers=auth_header(alice))
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "private"
+
+
+def test_non_owner_cannot_get_private_snippet_by_id(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    private = snippet("private", owner_id=alice["_id"], is_public=False)
+    use_fake_data(monkeypatch, [private], [alice, bob])
+    client = TestClient(app)
+
+    response = client.get(f"/snippets/{private['_id']}", headers=auth_header(bob))
+
+    assert response.status_code == 404
+
+
 def test_create_snippet_requires_login(monkeypatch):
     use_fake_data(monkeypatch)
     client = TestClient(app)

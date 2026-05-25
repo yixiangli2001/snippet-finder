@@ -37,6 +37,13 @@ def can_change_snippet(snippet: dict, user: UserInDB) -> bool:
     return user.role == "admin" or owned_by_user(snippet, user)
 
 
+def can_view_snippet(snippet: dict, user: UserInDB | None) -> bool:
+    is_public = snippet.get("is_public", True)
+    is_owner = user and owned_by_user(snippet, user)
+    is_admin = user and user.role == "admin"
+    return is_public or bool(is_owner) or bool(is_admin)
+
+
 async def get_snippet_for_change(snippet_id: str, user: UserInDB) -> dict:
     object_id = parse_object_id(snippet_id)
     snippet = await snippets_collection.find_one({"_id": object_id})
@@ -89,6 +96,20 @@ async def get_snippets(
     snippets = await snippets_collection.find(query).sort("created_at", -1).to_list(100)
     username_map = await build_username_map(snippets)
     return [format_snippet(s, username_map.get(s.get("owner_id"))) for s in snippets]
+
+
+@router.get("/{snippet_id}", response_model=SnippetResponse)
+async def get_snippet(
+    snippet_id: str,
+    current_user: UserInDB | None = Depends(get_optional_user),
+):
+    object_id = parse_object_id(snippet_id)
+    snippet = await snippets_collection.find_one({"_id": object_id})
+    if not snippet or not can_view_snippet(snippet, current_user):
+        raise HTTPException(status_code=404, detail="Snippet not found")
+
+    username = await get_owner_username(snippet.get("owner_id"))
+    return format_snippet(snippet, username)
 
 
 @router.post("/", response_model=SnippetResponse)
