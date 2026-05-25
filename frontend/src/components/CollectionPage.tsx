@@ -26,6 +26,7 @@ export default function CollectionPage({ currentUserId, token, onCollectionChang
     async function fetchCollection() {
       setLoading(true);
       setError(null);
+      setSnippets([]);
       try {
         const colRes = await fetch(`${API}/collections/${id}`, { headers: authHeaders(token ?? null) });
         if (!colRes.ok) throw new Error(`HTTP ${colRes.status}`);
