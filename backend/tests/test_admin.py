@@ -5,6 +5,7 @@ import routers.admin as admin_router
 import routers.auth as auth_router
 import routers.snippets as snippets_router
 import utils.security as security
+import utils.user_lookup as user_lookup
 from main import app
 from tests.fakes import FakeCollection
 
@@ -67,15 +68,18 @@ def register_and_login(client, email, password="securepass", username=None):
     return login.json()["access_token"]
 
 
-def setup_with_registered_admin(monkeypatch, extra_users=None, snippets=None):
+def setup_with_registered_admin(monkeypatch, extra_users=None, snippets=None, collections=None):
     users = FakeCollection(extra_users or [])
     snippet_col = FakeCollection(snippets or [])
+    col_col = FakeCollection(collections or [])
 
     monkeypatch.setattr(auth_router, "users_collection", users)
     monkeypatch.setattr(security, "users_collection", users)
     monkeypatch.setattr(admin_router, "users_collection", users)
     monkeypatch.setattr(admin_router, "snippets_collection", snippet_col)
+    monkeypatch.setattr(admin_router, "collections_collection", col_col)
     monkeypatch.setattr(snippets_router, "snippets_collection", snippet_col)
+    monkeypatch.setattr(user_lookup, "users_collection", users)
 
     client = TestClient(app)
     register_and_login(client, "admin@example.com", username="admin")
@@ -87,14 +91,14 @@ def setup_with_registered_admin(monkeypatch, extra_users=None, snippets=None):
         "/auth/login", json={"email": "admin@example.com", "password": "securepass"}
     ).json()["access_token"]
 
-    return users, snippet_col, client, admin_token
+    return users, snippet_col, col_col, client, admin_token
 
 
 # ── List users ────────────────────────────────────────────────
 
 
 def test_list_users_returns_all_accounts(monkeypatch):
-    users, _, client, token = setup_with_registered_admin(monkeypatch)
+    users, _, _, client, token = setup_with_registered_admin(monkeypatch)
     register_and_login(client, "bob@example.com")
 
     response = client.get("/admin/users", headers={"Authorization": f"Bearer {token}"})
@@ -105,7 +109,7 @@ def test_list_users_returns_all_accounts(monkeypatch):
 
 
 def test_list_users_requires_admin(monkeypatch):
-    users, _, client, _ = setup_with_registered_admin(monkeypatch)
+    users, _, _, client, _ = setup_with_registered_admin(monkeypatch)
     user_token = register_and_login(client, "bob@example.com")
 
     response = client.get("/admin/users", headers={"Authorization": f"Bearer {user_token}"})
@@ -126,7 +130,7 @@ def test_list_users_requires_token(monkeypatch):
 
 
 def test_list_snippets_returns_all_including_private(monkeypatch):
-    users, snippet_col, client, token = setup_with_registered_admin(monkeypatch)
+    users, snippet_col, _, client, token = setup_with_registered_admin(monkeypatch)
     owner_id = users.documents[0]["_id"]
     snippet_col.documents.extend([
         make_snippet(owner_id, "public snippet", is_public=True),
@@ -141,7 +145,7 @@ def test_list_snippets_returns_all_including_private(monkeypatch):
 
 
 def test_list_snippets_requires_admin(monkeypatch):
-    _, _, client, _ = setup_with_registered_admin(monkeypatch)
+    _, _, _, client, _ = setup_with_registered_admin(monkeypatch)
     user_token = register_and_login(client, "bob@example.com")
 
     response = client.get("/admin/snippets", headers={"Authorization": f"Bearer {user_token}"})
@@ -153,7 +157,7 @@ def test_list_snippets_requires_admin(monkeypatch):
 
 
 def test_delete_user_removes_account(monkeypatch):
-    users, _, client, token = setup_with_registered_admin(monkeypatch)
+    users, _, _, client, token = setup_with_registered_admin(monkeypatch)
     register_and_login(client, "bob@example.com")
     bob = next(u for u in users.documents if u["email"] == "bob@example.com")
 
@@ -167,7 +171,7 @@ def test_delete_user_removes_account(monkeypatch):
 
 
 def test_delete_user_removes_private_snippets_and_orphans_public(monkeypatch):
-    users, snippet_col, client, token = setup_with_registered_admin(monkeypatch)
+    users, snippet_col, _, client, token = setup_with_registered_admin(monkeypatch)
     register_and_login(client, "bob@example.com")
     bob = next(u for u in users.documents if u["email"] == "bob@example.com")
     snippet_col.documents.extend([
@@ -182,8 +186,27 @@ def test_delete_user_removes_private_snippets_and_orphans_public(monkeypatch):
     assert snippet_col.documents[0]["owner_id"] is None
 
 
+def test_delete_user_removes_private_collections_and_orphans_public(monkeypatch):
+    users, _, col_col, client, token = setup_with_registered_admin(monkeypatch)
+    register_and_login(client, "bob@example.com")
+    bob = next(u for u in users.documents if u["email"] == "bob@example.com")
+    col_col.documents.extend([
+        {"_id": ObjectId(), "owner_id": bob["_id"], "name": "bob public", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+        {"_id": ObjectId(), "owner_id": bob["_id"], "name": "bob private", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+    ])
+
+    response = client.delete(f"/admin/users/{bob['_id']}", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    names = {collection["name"] for collection in col_col.documents}
+    assert names == {"bob public"}
+    assert col_col.documents[0]["owner_id"] is None
+
+
 def test_delete_user_returns_404_for_unknown_id(monkeypatch):
-    _, _, client, token = setup_with_registered_admin(monkeypatch)
+    _, _, _, client, token = setup_with_registered_admin(monkeypatch)
 
     response = client.delete(
         f"/admin/users/{ObjectId()}",
@@ -194,7 +217,7 @@ def test_delete_user_returns_404_for_unknown_id(monkeypatch):
 
 
 def test_delete_user_requires_admin(monkeypatch):
-    users, _, client, _ = setup_with_registered_admin(monkeypatch)
+    users, _, _, client, _ = setup_with_registered_admin(monkeypatch)
     user_token = register_and_login(client, "bob@example.com")
     bob = next(u for u in users.documents if u["email"] == "bob@example.com")
 
@@ -210,7 +233,7 @@ def test_delete_user_requires_admin(monkeypatch):
 
 
 def test_delete_snippet_removes_any_snippet(monkeypatch):
-    users, snippet_col, client, token = setup_with_registered_admin(monkeypatch)
+    users, snippet_col, _, client, token = setup_with_registered_admin(monkeypatch)
     register_and_login(client, "bob@example.com")
     bob = next(u for u in users.documents if u["email"] == "bob@example.com")
     snippet_col.documents.append(make_snippet(bob["_id"], "bob snippet"))
@@ -225,8 +248,30 @@ def test_delete_snippet_removes_any_snippet(monkeypatch):
     assert snippet_col.documents == []
 
 
+def test_delete_snippet_removes_it_from_collections(monkeypatch):
+    users, snippet_col, col_col, client, token = setup_with_registered_admin(monkeypatch)
+    register_and_login(client, "bob@example.com")
+    bob = next(u for u in users.documents if u["email"] == "bob@example.com")
+    snippet_col.documents.append(make_snippet(bob["_id"], "bob snippet"))
+    snippet_id = snippet_col.documents[0]["_id"]
+    other_snippet_id = ObjectId()
+    col_col.documents.append(
+        {"_id": ObjectId(), "owner_id": bob["_id"], "name": "Bob collection", "is_public": False,
+         "snippet_ids": [snippet_id, other_snippet_id], "description": None,
+         "created_at": "2026-01-01", "updated_at": "2026-01-01"}
+    )
+
+    response = client.delete(
+        f"/admin/snippets/{snippet_id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert col_col.documents[0]["snippet_ids"] == [other_snippet_id]
+
+
 def test_delete_snippet_returns_404_for_unknown_id(monkeypatch):
-    _, _, client, token = setup_with_registered_admin(monkeypatch)
+    _, _, _, client, token = setup_with_registered_admin(monkeypatch)
 
     response = client.delete(
         f"/admin/snippets/{ObjectId()}",
@@ -237,7 +282,7 @@ def test_delete_snippet_returns_404_for_unknown_id(monkeypatch):
 
 
 def test_delete_snippet_requires_admin(monkeypatch):
-    users, snippet_col, client, _ = setup_with_registered_admin(monkeypatch)
+    users, snippet_col, _, client, _ = setup_with_registered_admin(monkeypatch)
     user_token = register_and_login(client, "bob@example.com")
     bob = next(u for u in users.documents if u["email"] == "bob@example.com")
     snippet_col.documents.append(make_snippet(bob["_id"], "bob snippet"))
@@ -247,5 +292,49 @@ def test_delete_snippet_requires_admin(monkeypatch):
         f"/admin/snippets/{snippet_id}",
         headers={"Authorization": f"Bearer {user_token}"},
     )
+
+    assert response.status_code == 403
+
+
+# ── Admin collections ─────────────────────────────────────────
+
+
+def test_admin_list_collections_returns_all_including_private(monkeypatch):
+    users, _, col_col, client, token = setup_with_registered_admin(monkeypatch)
+    owner_id = users.documents[0]["_id"]
+    col_col.documents.extend([
+        {"_id": ObjectId(), "owner_id": owner_id, "name": "Public col", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+        {"_id": ObjectId(), "owner_id": owner_id, "name": "Private col", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+    ])
+
+    response = client.get("/admin/collections", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    names = {c["name"] for c in response.json()}
+    assert names == {"Public col", "Private col"}
+
+
+def test_admin_delete_collection_removes_it(monkeypatch):
+    users, _, col_col, client, token = setup_with_registered_admin(monkeypatch)
+    owner_id = users.documents[0]["_id"]
+    col_col.documents.append(
+        {"_id": ObjectId(), "owner_id": owner_id, "name": "To delete", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"}
+    )
+    col_id = col_col.documents[0]["_id"]
+
+    response = client.delete(f"/admin/collections/{col_id}", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    assert col_col.documents == []
+
+
+def test_admin_collections_requires_admin(monkeypatch):
+    _, _, _, client, _ = setup_with_registered_admin(monkeypatch)
+    user_token = register_and_login(client, "bob@example.com")
+
+    response = client.get("/admin/collections", headers={"Authorization": f"Bearer {user_token}"})
 
     assert response.status_code == 403

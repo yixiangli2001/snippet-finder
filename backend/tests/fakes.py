@@ -53,7 +53,13 @@ class FakeCollection:
                 elif "$regex" in expected:
                     if expected["$regex"].lower() not in str(actual or "").lower():
                         return False
+                elif "$in" in expected:
+                    if actual not in expected["$in"]:
+                        return False
                 else:
+                    return False
+            elif isinstance(actual, list):
+                if expected not in actual:
                     return False
             elif actual != expected:
                 return False
@@ -78,7 +84,15 @@ class FakeCollection:
     async def find_one_and_update(self, query, update, return_document=True):
         for document in self.documents:
             if self._matches(document, query):
-                document.update(update.get("$set", {}))
+                if "$set" in update:
+                    document.update(update["$set"])
+                if "$push" in update:
+                    for key, value in update["$push"].items():
+                        document.setdefault(key, []).append(value)
+                if "$pull" in update:
+                    for key, value in update["$pull"].items():
+                        if key in document:
+                            document[key] = [i for i in document[key] if i != value]
                 return deepcopy(document)
         return None
 
@@ -105,6 +119,10 @@ class FakeCollection:
             if self._matches(document, query):
                 if "$set" in update:
                     document.update(update["$set"])
+                if "$pull" in update:
+                    for key, value in update["$pull"].items():
+                        if key in document:
+                            document[key] = [i for i in document[key] if i != value]
                 matched_count += 1
         return UpdateResult(matched_count)
 

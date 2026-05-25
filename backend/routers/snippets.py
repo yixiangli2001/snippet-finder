@@ -3,28 +3,30 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 import re
 
-from database import snippets_collection
+from database import collections_collection, snippets_collection
 from models.snippet import SnippetCreate, SnippetUpdate, SnippetResponse
 from models.user import UserInDB
 from utils.security import get_current_user, get_optional_user
+from utils.user_lookup import build_username_map, get_owner_username
 
 router = APIRouter()
 
 
-def format_snippet(snippet: dict) -> dict:
+def format_snippet(snippet: dict, owner_username: str | None = None) -> dict:
     formatted = {**snippet, "id": str(snippet["_id"])}
     del formatted["_id"]
     if formatted.get("owner_id") is not None:
         formatted["owner_id"] = str(formatted["owner_id"])
     formatted.setdefault("owner_id", None)
     formatted.setdefault("is_public", True)
+    formatted["owner_username"] = owner_username
     return formatted
 
 
-def parse_object_id(snippet_id: str) -> ObjectId:
-    if not ObjectId.is_valid(snippet_id):
-        raise HTTPException(status_code=400, detail="Invalid snippet id")
-    return ObjectId(snippet_id)
+def parse_object_id(value: str, label: str = "snippet id") -> ObjectId:
+    if not ObjectId.is_valid(value):
+        raise HTTPException(status_code=400, detail=f"Invalid {label}")
+    return ObjectId(value)
 
 
 def owned_by_user(snippet: dict, user: UserInDB) -> bool:
@@ -47,12 +49,16 @@ async def get_snippet_for_change(snippet_id: str, user: UserInDB) -> dict:
 
 @router.get("/", response_model=list[SnippetResponse])
 async def get_snippets(
-    search: str = None,
-    language: str = None,
+    search: str | None = None,
+    language: str | None = None,
+    owner_id: str | None = None,
     current_user: UserInDB | None = Depends(get_optional_user),
 ):
     filters = []
-    if current_user:
+    if owner_id:
+        # Profile page: show only the public snippets of a specific user.
+        filters.append({"owner_id": parse_object_id(owner_id, "owner id"), "is_public": True})
+    elif current_user:
         filters.append({
             "$or": [
                 {"is_public": True},
@@ -81,7 +87,8 @@ async def get_snippets(
 
     query = filters[0] if len(filters) == 1 else {"$and": filters}
     snippets = await snippets_collection.find(query).sort("created_at", -1).to_list(100)
-    return [format_snippet(s) for s in snippets]
+    username_map = await build_username_map(snippets)
+    return [format_snippet(s, username_map.get(s.get("owner_id"))) for s in snippets]
 
 
 @router.post("/", response_model=SnippetResponse)
@@ -99,7 +106,9 @@ async def create_snippet(
 
     result = await snippets_collection.insert_one(data)
     created = await snippets_collection.find_one({"_id": result.inserted_id})
-    return format_snippet(created)
+    if not created:
+        raise HTTPException(status_code=500, detail="Snippet was not saved")
+    return format_snippet(created, current_user.username)
 
 
 @router.put("/{snippet_id}", response_model=SnippetResponse)
@@ -117,7 +126,10 @@ async def update_snippet(
         {"$set": data},
         return_document=True
     )
-    return format_snippet(result)
+    if not result:
+        raise HTTPException(status_code=404, detail="Snippet not found")
+    username = await get_owner_username(result.get("owner_id"))
+    return format_snippet(result, username)
 
 
 @router.delete("/{snippet_id}")
@@ -131,6 +143,11 @@ async def delete_snippet(
     )
     if not result:
         raise HTTPException(status_code=404, detail="Snippet not found")
+
+    await collections_collection.update_many(
+        {"snippet_ids": existing["_id"]},
+        {"$pull": {"snippet_ids": existing["_id"]}},
+    )
     return {"message": "Snippet deleted"}
 
 
@@ -160,4 +177,7 @@ async def toggle_visibility(
         }},
         return_document=True
     )
-    return format_snippet(result)
+    if not result:
+        raise HTTPException(status_code=404, detail="Snippet not found")
+    username = await get_owner_username(result.get("owner_id"))
+    return format_snippet(result, username)

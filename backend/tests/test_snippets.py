@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 import routers.snippets as snippets_router
 import utils.security as security
+import utils.user_lookup as user_lookup
 from main import app
 from tests.fakes import FakeCollection
 from utils.security import create_token, hash_password
@@ -27,7 +28,7 @@ def auth_header(user):
     return {"Authorization": f"Bearer {token}"}
 
 
-def use_fake_data(monkeypatch, snippets=None, user_documents=None):
+def use_fake_data(monkeypatch, snippets=None, user_documents=None, collections=None):
     if user_documents is None:
         user_documents = [
             make_user("alice@example.com", "alice"),
@@ -35,9 +36,12 @@ def use_fake_data(monkeypatch, snippets=None, user_documents=None):
         ]
     users = FakeCollection(user_documents)
     snippet_collection = FakeCollection(snippets or [])
+    collection_collection = FakeCollection(collections or [])
     monkeypatch.setattr(security, "users_collection", users)
     monkeypatch.setattr(snippets_router, "snippets_collection", snippet_collection)
-    return user_documents[0], user_documents[1], snippet_collection
+    monkeypatch.setattr(snippets_router, "collections_collection", collection_collection)
+    monkeypatch.setattr(user_lookup, "users_collection", users)
+    return user_documents[0], user_documents[1], snippet_collection, collection_collection
 
 
 def snippet(title, owner_id=None, is_public=False):
@@ -100,7 +104,7 @@ def test_create_snippet_requires_login(monkeypatch):
 
 
 def test_create_snippet_sets_owner_and_private_visibility(monkeypatch):
-    alice, _, _ = use_fake_data(monkeypatch)
+    alice, _, _, _ = use_fake_data(monkeypatch)
     client = TestClient(app)
 
     response = client.post(
@@ -145,6 +149,62 @@ def test_owner_can_update_snippet(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["title"] == "updated"
+
+
+def test_owner_delete_snippet_removes_it_from_collections(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    snippet_to_delete = snippet("delete me", owner_id=alice["_id"], is_public=False)
+    collection = {
+        "_id": ObjectId(),
+        "owner_id": alice["_id"],
+        "name": "My collection",
+        "description": None,
+        "snippet_ids": [snippet_to_delete["_id"], ObjectId()],
+        "is_public": False,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+    _, _, _, collections = use_fake_data(
+        monkeypatch,
+        [snippet_to_delete],
+        [alice, make_user("bob@example.com", "bob")],
+        [collection],
+    )
+    client = TestClient(app)
+
+    response = client.delete(
+        f"/snippets/{snippet_to_delete['_id']}",
+        headers=auth_header(alice),
+    )
+
+    assert response.status_code == 200
+    assert snippet_to_delete["_id"] not in collections.documents[0]["snippet_ids"]
+
+
+def test_owner_id_filter_returns_only_public_snippets_of_that_user(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    alice_public = snippet("alice public", owner_id=alice["_id"], is_public=True)
+    alice_private = snippet("alice private", owner_id=alice["_id"], is_public=False)
+    bob_public = snippet("bob public", owner_id=bob["_id"], is_public=True)
+    use_fake_data(monkeypatch, [alice_public, alice_private, bob_public], [alice, bob])
+    client = TestClient(app)
+
+    response = client.get(f"/snippets/?owner_id={alice['_id']}")
+
+    assert response.status_code == 200
+    titles = [s["title"] for s in response.json()]
+    assert titles == ["alice public"]
+
+
+def test_owner_id_filter_rejects_invalid_owner_id(monkeypatch):
+    use_fake_data(monkeypatch)
+    client = TestClient(app)
+
+    response = client.get("/snippets/?owner_id=not-an-id")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid owner id"
 
 
 def test_owner_can_toggle_visibility(monkeypatch):
