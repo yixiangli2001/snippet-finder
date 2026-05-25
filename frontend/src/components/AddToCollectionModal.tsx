@@ -6,11 +6,12 @@ import { type Collection } from '../types/collection';
 interface Props {
   snippetId: string;
   token: string;
+  currentUserId: string;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function AddToCollectionModal({ snippetId, token, onClose, onSuccess }: Props) {
+export default function AddToCollectionModal({ snippetId, token, currentUserId, onClose, onSuccess }: Props) {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -23,8 +24,9 @@ export default function AddToCollectionModal({ snippetId, token, onClose, onSucc
         const res = await fetch(`${API}/collections/`, { headers: authHeaders(token) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const cols: Collection[] = await res.json();
-        setCollections(cols);
-        if (cols.length > 0) setSelectedId(cols[0].id);
+        const ownedCollections = cols.filter(col => col.owner_id === currentUserId);
+        setCollections(ownedCollections);
+        if (ownedCollections.length > 0) setSelectedId(ownedCollections[0].id);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -32,7 +34,7 @@ export default function AddToCollectionModal({ snippetId, token, onClose, onSucc
       }
     }
     fetchCollections();
-  }, [token]);
+  }, [token, currentUserId]);
 
   async function handleAdd() {
     if (!selectedId) return;

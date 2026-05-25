@@ -227,6 +227,7 @@ export default function App() {
                     key={snippet.id}
                     snippet={snippet}
                     token={auth.token || undefined}
+                    currentUserId={auth.user?.id || null}
                     canEdit={Boolean(auth.user && snippet.owner_id === auth.user.id)}
                     onCopy={handleCopy}
                     onDelete={handleDelete}

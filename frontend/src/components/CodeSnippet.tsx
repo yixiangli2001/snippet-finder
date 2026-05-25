@@ -24,6 +24,7 @@ interface Props {
   snippet: Snippet;
   canEdit?: boolean;
   token?: string;
+  currentUserId?: string | null;
   onCopy?: (id: string) => void;
   onDelete?: (id: string) => void;
   onEdit?: (id: string, updated: Partial<Snippet>) => void;
@@ -36,6 +37,7 @@ export default function CodeSnippet({
   snippet,
   canEdit = false,
   token,
+  currentUserId,
   onCopy,
   onDelete,
   onEdit,
@@ -176,7 +178,7 @@ export default function CodeSnippet({
             </span>
           </div>
           <div className="snippet-actions">
-            {token && !onRemove && (
+            {token && currentUserId && !onRemove && (
               <button
                 className="snippet-action-btn"
                 onClick={() => setShowAddToCollection(true)}
@@ -278,6 +280,7 @@ export default function CodeSnippet({
         <AddToCollectionModal
           snippetId={snippet.id}
           token={token}
+          currentUserId={currentUserId ?? ""}
           onClose={() => setShowAddToCollection(false)}
           onSuccess={() => {
             setShowAddToCollection(false);
