@@ -43,10 +43,14 @@ async def get_collection_for_change(collection_id: str, user: UserInDB) -> dict:
 
 @router.get("/", response_model=list[CollectionResponse])
 async def get_collections(
+    owner_id: str | None = None,
     current_user: UserInDB | None = Depends(get_optional_user),
 ):
     """Return public collections, plus the user's own private ones if logged in."""
-    if current_user:
+    if owner_id:
+        # Profile page: show only the public collections of a specific user.
+        query = {"owner_id": parse_object_id(owner_id, "owner id"), "is_public": True}
+    elif current_user:
         query = {"$or": [{"is_public": True}, {"owner_id": ObjectId(current_user.id)}]}
     else:
         query = {"is_public": True}
@@ -73,6 +77,8 @@ async def create_collection(
     }
     result = await collections_collection.insert_one(data)
     created = await collections_collection.find_one({"_id": result.inserted_id})
+    if not created:
+        raise HTTPException(status_code=500, detail="Collection was not saved")
     return format_collection(created, current_user.username)
 
 
@@ -115,6 +121,8 @@ async def update_collection(
         {"$set": updates},
         return_document=True,
     )
+    if not result:
+        raise HTTPException(status_code=404, detail="Collection not found")
     username = await get_owner_username(result.get("owner_id"))
     return format_collection(result, username)
 

@@ -4,7 +4,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 
 from database import snippets_collection, users_collection
-from models.user import UpdateEmail, UpdatePassword, UpdateUsername, UserInDB, UserResponse
+from models.user import UpdateEmail, UpdatePassword, UpdateUsername, UserInDB, PublicUserResponse, UserResponse
 from routers.auth import format_user
 from utils.security import get_current_user, hash_password, verify_password
 
@@ -73,6 +73,15 @@ async def update_email(
         return_document=True,
     )
     return format_user(updated)
+
+
+@router.get("/{username}", response_model=PublicUserResponse)
+async def get_user_profile(username: str):
+    """Return the public profile for a user. No auth required."""
+    user = await users_collection.find_one({"username": username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"id": str(user["_id"]), "username": user["username"]}
 
 
 @router.delete("/me")

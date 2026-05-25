@@ -84,6 +84,13 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
 
+class PublicUserResponse(BaseModel):
+    """Minimal public profile returned on GET /users/{username}. No email."""
+
+    id: str
+    username: str
+
+
 class UserInDB(BaseModel):
     """Internal model representing a full DB record. Never serialised directly into a response."""
 

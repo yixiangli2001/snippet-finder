@@ -263,6 +263,26 @@ def test_delete_collection_does_not_delete_snippets(monkeypatch):
     assert col_collection.documents == []
 
 
+def test_owner_id_filter_returns_only_public_collections_of_that_user(monkeypatch):
+    users, col_collection, client = setup(monkeypatch)
+    token = register_and_login(client)
+    user_id = users.documents[0]["_id"]
+    other_id = ObjectId()
+    col_collection.documents.extend([
+        {"_id": ObjectId(), "owner_id": user_id, "name": "My public", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+        {"_id": ObjectId(), "owner_id": user_id, "name": "My private", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+        {"_id": ObjectId(), "owner_id": other_id, "name": "Their public", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+    ])
+
+    response = client.get(f"/collections/?owner_id={user_id}")
+
+    names = [c["name"] for c in response.json()]
+    assert names == ["My public"]
+
+
 def test_non_owner_cannot_delete_collection(monkeypatch):
     _, col_collection, client = setup(monkeypatch)
     token = register_and_login(client)

@@ -255,3 +255,29 @@ def test_deleted_user_token_no_longer_valid(monkeypatch):
     response = client.get("/users/me", headers={"Authorization": f"Bearer {token}"})
 
     assert response.status_code == 401
+
+
+# ── GET /users/{username} ─────────────────────────────────────
+
+
+def test_get_user_profile_returns_id_and_username(monkeypatch):
+    use_fake_users(monkeypatch)
+    client = TestClient(app)
+    register_and_login(client)
+
+    response = client.get("/users/alice")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["username"] == "alice"
+    assert "id" in body
+    assert "email" not in body
+
+
+def test_get_user_profile_returns_404_for_unknown_username(monkeypatch):
+    use_fake_users(monkeypatch)
+    client = TestClient(app)
+
+    response = client.get("/users/nobody")
+
+    assert response.status_code == 404

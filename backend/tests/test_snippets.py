@@ -149,6 +149,32 @@ def test_owner_can_update_snippet(monkeypatch):
     assert response.json()["title"] == "updated"
 
 
+def test_owner_id_filter_returns_only_public_snippets_of_that_user(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    alice_public = snippet("alice public", owner_id=alice["_id"], is_public=True)
+    alice_private = snippet("alice private", owner_id=alice["_id"], is_public=False)
+    bob_public = snippet("bob public", owner_id=bob["_id"], is_public=True)
+    use_fake_data(monkeypatch, [alice_public, alice_private, bob_public], [alice, bob])
+    client = TestClient(app)
+
+    response = client.get(f"/snippets/?owner_id={alice['_id']}")
+
+    assert response.status_code == 200
+    titles = [s["title"] for s in response.json()]
+    assert titles == ["alice public"]
+
+
+def test_owner_id_filter_rejects_invalid_owner_id(monkeypatch):
+    use_fake_data(monkeypatch)
+    client = TestClient(app)
+
+    response = client.get("/snippets/?owner_id=not-an-id")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid owner id"
+
+
 def test_owner_can_toggle_visibility(monkeypatch):
     alice = make_user("alice@example.com", "alice")
     private = snippet("secret", owner_id=alice["_id"], is_public=False)

@@ -23,10 +23,10 @@ def format_snippet(snippet: dict, owner_username: str | None = None) -> dict:
     return formatted
 
 
-def parse_object_id(snippet_id: str) -> ObjectId:
-    if not ObjectId.is_valid(snippet_id):
-        raise HTTPException(status_code=400, detail="Invalid snippet id")
-    return ObjectId(snippet_id)
+def parse_object_id(value: str, label: str = "snippet id") -> ObjectId:
+    if not ObjectId.is_valid(value):
+        raise HTTPException(status_code=400, detail=f"Invalid {label}")
+    return ObjectId(value)
 
 
 def owned_by_user(snippet: dict, user: UserInDB) -> bool:
@@ -49,12 +49,16 @@ async def get_snippet_for_change(snippet_id: str, user: UserInDB) -> dict:
 
 @router.get("/", response_model=list[SnippetResponse])
 async def get_snippets(
-    search: str = None,
-    language: str = None,
+    search: str | None = None,
+    language: str | None = None,
+    owner_id: str | None = None,
     current_user: UserInDB | None = Depends(get_optional_user),
 ):
     filters = []
-    if current_user:
+    if owner_id:
+        # Profile page: show only the public snippets of a specific user.
+        filters.append({"owner_id": parse_object_id(owner_id, "owner id"), "is_public": True})
+    elif current_user:
         filters.append({
             "$or": [
                 {"is_public": True},
@@ -102,6 +106,8 @@ async def create_snippet(
 
     result = await snippets_collection.insert_one(data)
     created = await snippets_collection.find_one({"_id": result.inserted_id})
+    if not created:
+        raise HTTPException(status_code=500, detail="Snippet was not saved")
     return format_snippet(created, current_user.username)
 
 
@@ -120,6 +126,8 @@ async def update_snippet(
         {"$set": data},
         return_document=True
     )
+    if not result:
+        raise HTTPException(status_code=404, detail="Snippet not found")
     username = await get_owner_username(result.get("owner_id"))
     return format_snippet(result, username)
 
@@ -164,5 +172,7 @@ async def toggle_visibility(
         }},
         return_document=True
     )
+    if not result:
+        raise HTTPException(status_code=404, detail="Snippet not found")
     username = await get_owner_username(result.get("owner_id"))
     return format_snippet(result, username)
