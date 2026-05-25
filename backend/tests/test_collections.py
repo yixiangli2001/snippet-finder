@@ -333,6 +333,35 @@ def test_owner_can_add_public_snippet_to_collection(monkeypatch):
     assert str(snippet_id) in response.json()["snippet_ids"]
 
 
+def test_cannot_add_same_snippet_to_collection_twice(monkeypatch):
+    users, col_collection, snippet_collection, client = setup(monkeypatch)
+    token = register_and_login(client)
+    user_id = users.documents[0]["_id"]
+    col_id = ObjectId()
+    snippet_id = ObjectId()
+    col_collection.documents.append(
+        {"_id": col_id, "owner_id": user_id, "name": "My col", "is_public": False,
+         "snippet_ids": [snippet_id], "description": None,
+         "created_at": "2026-01-01", "updated_at": "2026-01-01"}
+    )
+    snippet_collection.documents.append(
+        {"_id": snippet_id, "owner_id": user_id, "is_public": False,
+         "title": "A snippet", "language": "python", "code": "x=1",
+         "description": None, "tags": [], "times_copied": 0,
+         "created_at": "2026-01-01", "updated_at": "2026-01-01"}
+    )
+
+    response = client.post(
+        f"/collections/{col_id}/snippets",
+        json={"snippet_id": str(snippet_id)},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Snippet is already in this collection"
+    assert col_collection.documents[0]["snippet_ids"] == [snippet_id]
+
+
 def test_cannot_add_private_snippet_to_public_collection(monkeypatch):
     users, col_collection, snippet_collection, client = setup(monkeypatch)
     token = register_and_login(client)

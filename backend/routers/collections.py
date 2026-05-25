@@ -153,6 +153,9 @@ async def add_snippet_to_collection(
     if col.get("is_public") and not is_public:
         raise HTTPException(status_code=400, detail="Cannot add a private snippet to a public collection")
 
+    if snippet_object_id in col.get("snippet_ids", []):
+        raise HTTPException(status_code=409, detail="Snippet is already in this collection")
+
     result = await collections_collection.find_one_and_update(
         {"_id": col["_id"]},
         {"$push": {"snippet_ids": snippet_object_id}},
