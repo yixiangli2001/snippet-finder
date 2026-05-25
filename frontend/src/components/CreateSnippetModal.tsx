@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { API } from '../constants';
 import { type Snippet } from './CodeSnippet';
 import { FormField } from './FormField';
+import { LanguageSelect } from './LanguageSelect';
 import { authHeaders } from '../utils/auth';
 
 const EMPTY_FORM = { title: '', language: '', code: '', description: '', tags: '' };
@@ -75,14 +76,11 @@ export default function CreateSnippetModal({ token, onClose, onCreate }: Props) 
               />
             </FormField>
             <FormField error={errors.language} className="snippet-field--lang">
-              <input
-                className={`snippet-edit-input snippet-edit-lang${errors.language ? " snippet-edit-input--error" : ""}`}
-                placeholder="Language *"
+              <LanguageSelect
                 value={form.language}
-                onChange={(e) => {
-                  setForm((f) => ({ ...f, language: e.target.value.toUpperCase() }));
-                  clearError("language");
-                }}
+                onChange={(lang) => setForm((f) => ({ ...f, language: lang }))}
+                error={errors.language}
+                onClearError={() => clearError("language")}
               />
             </FormField>
           </div>

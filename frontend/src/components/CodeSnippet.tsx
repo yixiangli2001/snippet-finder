@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./CodeSnippet.css";
 import { FormField } from "./FormField";
+import { LanguageSelect } from "./LanguageSelect";
 import { DeleteDialog } from "./DeleteDialog";
 import { CopyIcon, CheckIcon } from "./Icons";
 
@@ -102,14 +103,11 @@ export default function CodeSnippet({ snippet, canEdit = false, onCopy, onDelete
               />
             </FormField>
             <FormField error={editErrors.language} className="snippet-field--lang">
-              <input
-                className={`snippet-edit-input snippet-edit-lang${editErrors.language ? " snippet-edit-input--error" : ""}`}
-                placeholder="Language *"
+              <LanguageSelect
                 value={editForm.language}
-                onChange={(e) => {
-                  setEditForm((f) => ({ ...f, language: e.target.value.toUpperCase() }));
-                  clearError("language");
-                }}
+                onChange={(lang) => setEditForm((f) => ({ ...f, language: lang }))}
+                error={editErrors.language}
+                onClearError={() => clearError("language")}
               />
             </FormField>
           </div>
