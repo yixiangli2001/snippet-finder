@@ -5,15 +5,13 @@
   border-radius: 10px;
   overflow: hidden;
   text-align: left;
-  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  transition: border-color 0.18s, box-shadow 0.18s;
+  transition: border-color 0.18s;
 }
 
 .snippet-card:hover {
   border-color: var(--accent-border);
-  box-shadow: var(--shadow-md);
 }
 
 /* ── Header ──────────────────────────────────────────────── */
@@ -59,9 +57,7 @@
 }
 
 .snippet-visibility--public {
-  color: var(--accent);
-  background: var(--accent-bg);
-  border-color: var(--accent-border);
+  color: var(--text-h);
 }
 
 .snippet-title {
@@ -88,16 +84,18 @@
 }
 
 .snippet-action-btn {
-  font-family: var(--sans);
-  font-size: 11px;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   color: var(--text);
-  background: transparent;
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 2px 8px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition: all 0.15s ease;
 }
 
 .snippet-action-btn:hover {

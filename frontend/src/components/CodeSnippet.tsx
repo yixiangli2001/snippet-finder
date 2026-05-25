@@ -3,7 +3,8 @@ import "./CodeSnippet.css";
 import { FormField } from "./FormField";
 import { LanguageSelect } from "./LanguageSelect";
 import { DeleteDialog } from "./DeleteDialog";
-import { CopyIcon, CheckIcon } from "./Icons";
+import { CopyIcon, CheckIcon, EditIcon, EyeIcon, EyeOffIcon, PlusIcon, TrashIcon, XIcon } from "./Icons";
+import AddToCollectionModal from "./AddToCollectionModal";
 
 export interface Snippet {
   id: string;
@@ -22,16 +23,30 @@ export interface Snippet {
 interface Props {
   snippet: Snippet;
   canEdit?: boolean;
+  token?: string;
   onCopy?: (id: string) => void;
   onDelete?: (id: string) => void;
   onEdit?: (id: string, updated: Partial<Snippet>) => void;
   onToggleVisibility?: (id: string) => void;
+  onRemove?: (id: string) => void;
+  onCollectionChanged?: () => void;
 }
 
-export default function CodeSnippet({ snippet, canEdit = false, onCopy, onDelete, onEdit, onToggleVisibility }: Props) {
+export default function CodeSnippet({
+  snippet,
+  canEdit = false,
+  token,
+  onCopy,
+  onDelete,
+  onEdit,
+  onToggleVisibility,
+  onRemove,
+  onCollectionChanged
+}: Props) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [showAddToCollection, setShowAddToCollection] = useState(false);
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   const [editForm, setEditForm] = useState({
     title: snippet.title,
@@ -160,31 +175,56 @@ export default function CodeSnippet({ snippet, canEdit = false, onCopy, onDelete
               {snippet.is_public ? "Public" : "Private"}
             </span>
           </div>
-          {canEdit && (
-            <div className="snippet-actions">
+          <div className="snippet-actions">
+            {token && !onRemove && (
               <button
                 className="snippet-action-btn"
-                onClick={() => onToggleVisibility?.(snippet.id)}
-                aria-label={snippet.is_public ? "Make snippet private" : "Make snippet public"}
+                onClick={() => setShowAddToCollection(true)}
+                title="Add to collection"
+                aria-label="Add to collection"
               >
-                {snippet.is_public ? "Make private" : "Make public"}
+                <PlusIcon />
               </button>
-              <button
-                className="snippet-action-btn"
-                onClick={() => setIsEditing(true)}
-                aria-label="Edit snippet"
-              >
-                Edit
-              </button>
+            )}
+            {onRemove && (
               <button
                 className="snippet-action-btn snippet-action-btn--delete"
-                onClick={() => setConfirmingDelete(true)}
-                aria-label="Delete snippet"
+                onClick={() => onRemove(snippet.id)}
+                title="Remove from collection"
+                aria-label="Remove from collection"
               >
-                Delete
+                <XIcon />
               </button>
-            </div>
-          )}
+            )}
+            {canEdit && !onRemove && (
+              <>
+                <button
+                  className="snippet-action-btn"
+                  onClick={() => onToggleVisibility?.(snippet.id)}
+                  title={snippet.is_public ? "Make private" : "Make public"}
+                  aria-label={snippet.is_public ? "Make private" : "Make public"}
+                >
+                  {snippet.is_public ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+                <button
+                  className="snippet-action-btn"
+                  onClick={() => setIsEditing(true)}
+                  title="Edit snippet"
+                  aria-label="Edit snippet"
+                >
+                  <EditIcon />
+                </button>
+                <button
+                  className="snippet-action-btn snippet-action-btn--delete"
+                  onClick={() => setConfirmingDelete(true)}
+                  title="Delete snippet"
+                  aria-label="Delete snippet"
+                >
+                  <TrashIcon />
+                </button>
+              </>
+            )}
+          </div>
         </div>
         <h2 className="snippet-title">{snippet.title}</h2>
         {snippet.description && (
@@ -231,6 +271,18 @@ export default function CodeSnippet({ snippet, canEdit = false, onCopy, onDelete
             setConfirmingDelete(false);
           }}
           onCancel={() => setConfirmingDelete(false)}
+        />
+      )}
+
+      {showAddToCollection && token && (
+        <AddToCollectionModal
+          snippetId={snippet.id}
+          token={token}
+          onClose={() => setShowAddToCollection(false)}
+          onSuccess={() => {
+            setShowAddToCollection(false);
+            onCollectionChanged?.();
+          }}
         />
       )}
     </article>
