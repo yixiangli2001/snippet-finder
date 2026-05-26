@@ -65,8 +65,15 @@ async def get_snippets(
 ):
     filters = []
     if owner_id:
-        # Profile page: show only the public snippets of a specific user.
-        filters.append({"owner_id": parse_object_id(owner_id, "owner id"), "is_public": True})
+        owner_obj_id = parse_object_id(owner_id, "owner id")
+        is_own_profile = current_user and owner_obj_id == ObjectId(current_user.id)
+        is_admin = current_user and current_user.role == "admin"
+        if is_own_profile or is_admin:
+            # Owner viewing their own profile, or admin: include private snippets.
+            filters.append({"owner_id": owner_obj_id})
+        else:
+            # Anyone else: public snippets of that user only.
+            filters.append({"owner_id": owner_obj_id, "is_public": True})
     elif current_user and current_user.role == "admin":
         # Admins see everything, no visibility filter applied.
         pass

@@ -331,6 +331,55 @@ def test_delete_collection_does_not_delete_snippets(monkeypatch):
     assert col_collection.documents == []
 
 
+def test_owner_sees_own_private_collections_via_profile_filter(monkeypatch):
+    users, col_collection, _, client = setup(monkeypatch)
+    token = register_and_login(client)
+    user_id = users.documents[0]["_id"]
+
+    col_collection.documents.extend([
+        {"_id": ObjectId(), "owner_id": user_id, "name": "My public", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+        {"_id": ObjectId(), "owner_id": user_id, "name": "My private", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+    ])
+
+    response = client.get(
+        f"/collections/?owner_id={user_id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    names = {c["name"] for c in response.json()["items"]}
+    assert names == {"My public", "My private"}
+
+
+def test_admin_sees_private_collections_via_profile_filter(monkeypatch):
+    users, col_collection, _, client = setup(monkeypatch)
+
+    admin_id = ObjectId()
+    users.documents.append({
+        "_id": admin_id, "email": "admin@example.com", "username": "admin",
+        "password_hash": "$2b$12$placeholder", "role": "admin",
+        "created_at": "2026-01-01T00:00:00", "updated_at": "2026-01-01T00:00:00",
+    })
+
+    other_id = ObjectId()
+    col_collection.documents.extend([
+        {"_id": ObjectId(), "owner_id": other_id, "name": "Their public", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+        {"_id": ObjectId(), "owner_id": other_id, "name": "Their private", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+    ])
+
+    token = create_token(str(admin_id), "admin")
+    response = client.get(
+        f"/collections/?owner_id={other_id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    names = {c["name"] for c in response.json()["items"]}
+    assert names == {"Their public", "Their private"}
+
+
 def test_owner_id_filter_returns_only_public_collections_of_that_user(monkeypatch):
     users, col_collection, _, client = setup(monkeypatch)
     token = register_and_login(client)

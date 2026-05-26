@@ -250,6 +250,36 @@ def test_owner_id_filter_returns_only_public_snippets_of_that_user(monkeypatch):
     assert titles == ["alice public"]
 
 
+def test_owner_sees_own_private_snippets_via_profile_filter(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    alice_public = snippet("alice public", owner_id=alice["_id"], is_public=True)
+    alice_private = snippet("alice private", owner_id=alice["_id"], is_public=False)
+    use_fake_data(monkeypatch, [alice_public, alice_private], [alice, bob])
+    client = TestClient(app)
+
+    response = client.get(f"/snippets/?owner_id={alice['_id']}", headers=auth_header(alice))
+
+    assert response.status_code == 200
+    titles = {s["title"] for s in response.json()["items"]}
+    assert titles == {"alice public", "alice private"}
+
+
+def test_admin_sees_private_snippets_via_profile_filter(monkeypatch):
+    admin = make_user("admin@example.com", "admin", role="admin")
+    alice = make_user("alice@example.com", "alice")
+    alice_public = snippet("alice public", owner_id=alice["_id"], is_public=True)
+    alice_private = snippet("alice private", owner_id=alice["_id"], is_public=False)
+    use_fake_data(monkeypatch, [alice_public, alice_private], [admin, alice])
+    client = TestClient(app)
+
+    response = client.get(f"/snippets/?owner_id={alice['_id']}", headers=auth_header(admin))
+
+    assert response.status_code == 200
+    titles = {s["title"] for s in response.json()["items"]}
+    assert titles == {"alice public", "alice private"}
+
+
 def test_owner_id_filter_rejects_invalid_owner_id(monkeypatch):
     use_fake_data(monkeypatch)
     client = TestClient(app)
