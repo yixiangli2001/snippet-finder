@@ -423,6 +423,37 @@
   width: 100%;
 }
 
+/* "Other" mode: back button sits inside the input on the right */
+.language-other-row {
+  position: relative;
+}
+
+.language-other-row .snippet-edit-lang {
+  width: 100%;
+  padding-right: 26px; /* room for the back button */
+}
+
+.language-back-btn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px;
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.language-back-btn:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
 .snippet-edit-textarea {
   font-family: var(--sans);
   font-size: 13px;

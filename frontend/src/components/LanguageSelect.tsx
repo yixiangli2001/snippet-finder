@@ -14,7 +14,6 @@ export function LanguageSelect({ value, onChange, error, onClearError }: Props) 
     () => value !== '' && !LANGUAGES.includes(value as typeof LANGUAGES[number])
   );
 
-  const selectValue = isOther ? 'OTHER' : value;
   const errorClass = error ? ' snippet-edit-input--error' : '';
 
   function handleSelectChange(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -28,11 +27,42 @@ export function LanguageSelect({ value, onChange, error, onClearError }: Props) 
     }
   }
 
+  function handleBackToList() {
+    setIsOther(false);
+    onChange('');
+    onClearError?.();
+  }
+
+  if (isOther) {
+    // Replace the dropdown with a text input when "Other" is selected, and add a back button to return to the dropdown.
+    return (
+      <div className="language-select-wrap">
+        <div className="language-other-row">
+          <input
+            className={`snippet-edit-input snippet-edit-lang${errorClass}`}
+            placeholder="e.g. BASH"
+            value={value}
+            onChange={e => { onChange(e.target.value.toUpperCase()); onClearError?.(); }}
+            autoFocus
+          />
+          <button
+            type="button"
+            className="language-back-btn"
+            onClick={handleBackToList}
+            title="Choose from list"
+          >
+            ↩
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="language-select-wrap">
       <select
         className={`snippet-edit-input snippet-edit-lang snippet-edit-select${errorClass}`}
-        value={selectValue}
+        value={value || ''}
         onChange={handleSelectChange}
       >
         <option value="" disabled>Language *</option>
@@ -41,18 +71,6 @@ export function LanguageSelect({ value, onChange, error, onClearError }: Props) 
         ))}
         <option value="OTHER">Other…</option>
       </select>
-      {isOther && (
-        <input
-          className={`snippet-edit-input snippet-edit-lang${errorClass}`}
-          placeholder="e.g. COBOL"
-          value={value}
-          onChange={(e) => {
-            onChange(e.target.value.toUpperCase());
-            onClearError?.();
-          }}
-          autoFocus
-        />
-      )}
     </div>
   );
 }
