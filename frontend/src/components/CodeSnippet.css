@@ -284,6 +284,16 @@
   opacity: 0.7;
 }
 
+.snippet-owner--link {
+  text-decoration: none;
+  transition: color 0.15s, opacity 0.15s;
+}
+
+.snippet-owner--link:hover {
+  color: var(--accent);
+  opacity: 1;
+}
+
 .snippet-tags {
   display: flex;
   flex-wrap: wrap;

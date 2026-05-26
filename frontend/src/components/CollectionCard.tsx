@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { type Collection } from '../types/collection';
 import { type User } from '../utils/auth';
 import { displayOwner } from '../utils/author';
@@ -132,8 +132,14 @@ export default function CollectionCard({ collection, currentUser, onDelete, onEd
         <p className="collection-card-desc">{collection.description}</p>
       )}
 
-      <div className="collection-card-footer">
-        <span className="collection-owner-text">{displayOwner(collection.owner_username)}</span>
+      <div className="collection-card-footer" onClick={e => e.stopPropagation()}>
+        {collection.owner_username ? (
+          <Link to={`/users/${collection.owner_username}`} className="collection-owner-link">
+            {collection.owner_username}
+          </Link>
+        ) : (
+          <span className="collection-owner-text">Anonymous</span>
+        )}
       </div>
     </div>
   );

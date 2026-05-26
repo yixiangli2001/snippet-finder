@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API } from '../constants';
 import { authHeaders, type User } from '../utils/auth';
-import { displayOwner } from '../utils/author';
+import { Link } from 'react-router-dom';
 import { type Collection } from '../types/collection';
 import { type Snippet } from './CodeSnippet';
 import CodeSnippet from './CodeSnippet';
@@ -121,7 +121,13 @@ export default function CollectionPage({ currentUser, token, onCollectionChanged
           <p className="collection-page-desc">{collection.description}</p>
         )}
         <div className="collection-page-meta">
-          <span className="collection-page-owner">by {displayOwner(collection.owner_username)}</span>
+          {collection.owner_username ? (
+            <Link to={`/users/${collection.owner_username}`} className="collection-page-owner collection-page-owner--link">
+              by {collection.owner_username}
+            </Link>
+          ) : (
+            <span className="collection-page-owner">by Anonymous</span>
+          )}
           <span className={`snippet-visibility${collection.is_public ? ' snippet-visibility--public' : ''}`}>
             {collection.is_public ? 'Public' : 'Private'}
           </span>

@@ -5,6 +5,7 @@ import { LanguageSelect } from "./LanguageSelect";
 import { DeleteDialog } from "./DeleteDialog";
 import { CopyIcon, CheckIcon, EditIcon, EyeIcon, EyeOffIcon, PlusIcon, TrashIcon, XIcon } from "./Icons";
 import AddToCollectionModal from "./AddToCollectionModal";
+import { Link } from "react-router-dom";
 import { displayOwner } from "../utils/author";
 
 export interface Snippet {
@@ -267,7 +268,13 @@ export default function CodeSnippet({
             {snippet.times_copied} {snippet.times_copied === 1 ? "copy" : "copies"}
           </span>
         </div>
-        <span className="snippet-owner">{displayOwner(snippet.owner_username)}</span>
+        {snippet.owner_username ? (
+          <Link to={`/users/${snippet.owner_username}`} className="snippet-owner snippet-owner--link">
+            {snippet.owner_username}
+          </Link>
+        ) : (
+          <span className="snippet-owner">Anonymous</span>
+        )}
       </footer>
 
       {confirmingDelete && (
