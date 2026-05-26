@@ -3,7 +3,7 @@ import { API } from '../constants';
 import { authHeaders } from '../utils/auth';
 import { type Collection } from '../types/collection';
 
-const LIMIT = 20;
+const LIMIT = 9;
 
 export function useCollections(token: string | null) {
   const [collections, setCollections] = useState<Collection[]>([]);

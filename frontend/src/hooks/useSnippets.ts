@@ -3,7 +3,7 @@ import { API } from '../constants';
 import { type Snippet } from '../components/CodeSnippet';
 import { authHeaders } from '../utils/auth';
 
-const LIMIT = 20;
+const LIMIT = 9;
 
 // Checks if the current snippet values match the optimistic values for all fields being updated. 
 function valuesMatch(current: Snippet, optimistic: Snippet, updated: Partial<Snippet>) {
