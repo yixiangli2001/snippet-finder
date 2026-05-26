@@ -338,3 +338,66 @@ def test_admin_collections_requires_admin(monkeypatch):
     response = client.get("/admin/collections", headers={"Authorization": f"Bearer {user_token}"})
 
     assert response.status_code == 403
+
+
+# ── PUT /admin/users/{id} ──────────────────────────────────────
+
+
+def test_admin_can_update_user_username(monkeypatch):
+    users, _, _, client, token = setup_with_registered_admin(monkeypatch)
+    register_and_login(client, "bob@example.com", username="bob")
+    bob = next(u for u in users.documents if u["username"] == "bob")
+
+    response = client.put(
+        f"/admin/users/{bob['_id']}",
+        json={"username": "bobby"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["username"] == "bobby"
+
+
+def test_admin_can_update_user_email(monkeypatch):
+    users, _, _, client, token = setup_with_registered_admin(monkeypatch)
+    register_and_login(client, "bob@example.com", username="bob")
+    bob = next(u for u in users.documents if u["username"] == "bob")
+
+    response = client.put(
+        f"/admin/users/{bob['_id']}",
+        json={"email": "bobby@example.com"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["email"] == "bobby@example.com"
+
+
+def test_admin_update_user_rejects_duplicate_username(monkeypatch):
+    users, _, _, client, token = setup_with_registered_admin(monkeypatch)
+    register_and_login(client, "alice@example.com", username="alice")
+    register_and_login(client, "bob@example.com", username="bob")
+    bob = next(u for u in users.documents if u["username"] == "bob")
+
+    response = client.put(
+        f"/admin/users/{bob['_id']}",
+        json={"username": "alice"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 409
+
+
+def test_admin_update_user_requires_admin(monkeypatch):
+    users, _, _, client, _ = setup_with_registered_admin(monkeypatch)
+    register_and_login(client, "bob@example.com", username="bob")
+    bob = next(u for u in users.documents if u["username"] == "bob")
+    user_token = register_and_login(client, "charlie@example.com")
+
+    response = client.put(
+        f"/admin/users/{bob['_id']}",
+        json={"username": "hacked"},
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
+
+    assert response.status_code == 403
