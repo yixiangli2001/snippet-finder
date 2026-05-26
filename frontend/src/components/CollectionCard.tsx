@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Collection } from '../types/collection';
 import { type User } from '../utils/auth';
+import { displayOwner } from '../utils/author';
 import { EditIcon, EyeIcon, EyeOffIcon, TrashIcon, CheckIcon } from './Icons';
 
 interface Props {
@@ -131,11 +132,9 @@ export default function CollectionCard({ collection, currentUser, onDelete, onEd
         <p className="collection-card-desc">{collection.description}</p>
       )}
 
-      {collection.owner_username && (
-        <div className="collection-card-footer">
-          <span className="collection-owner-text">{collection.owner_username}</span>
-        </div>
-      )}
+      <div className="collection-card-footer">
+        <span className="collection-owner-text">{displayOwner(collection.owner_username)}</span>
+      </div>
     </div>
   );
 }

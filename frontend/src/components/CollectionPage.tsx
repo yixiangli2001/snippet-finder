@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API } from '../constants';
 import { authHeaders, type User } from '../utils/auth';
+import { displayOwner } from '../utils/author';
 import { type Collection } from '../types/collection';
 import { type Snippet } from './CodeSnippet';
 import CodeSnippet from './CodeSnippet';
@@ -120,9 +121,7 @@ export default function CollectionPage({ currentUser, token, onCollectionChanged
           <p className="collection-page-desc">{collection.description}</p>
         )}
         <div className="collection-page-meta">
-          {collection.owner_username && (
-            <span className="collection-page-owner">by {collection.owner_username}</span>
-          )}
+          <span className="collection-page-owner">by {displayOwner(collection.owner_username)}</span>
           <span className={`snippet-visibility${collection.is_public ? ' snippet-visibility--public' : ''}`}>
             {collection.is_public ? 'Public' : 'Private'}
           </span>

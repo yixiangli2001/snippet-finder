@@ -5,10 +5,12 @@ import { LanguageSelect } from "./LanguageSelect";
 import { DeleteDialog } from "./DeleteDialog";
 import { CopyIcon, CheckIcon, EditIcon, EyeIcon, EyeOffIcon, PlusIcon, TrashIcon, XIcon } from "./Icons";
 import AddToCollectionModal from "./AddToCollectionModal";
+import { displayOwner } from "../utils/author";
 
 export interface Snippet {
   id: string;
   owner_id: string | null;
+  owner_username: string | null;
   title: string;
   language: string;
   code: string;
@@ -251,18 +253,21 @@ export default function CodeSnippet({
       </div>
 
       <footer className="snippet-footer">
-        {snippet.tags.length > 0 && (
-          <ul className="snippet-tags">
-            {snippet.tags.map((tag) => (
-              <li key={tag} className="snippet-tag">
-                {tag}
-              </li>
-            ))}
-          </ul>
-        )}
-        <span className="snippet-copies">
-          {snippet.times_copied} {snippet.times_copied === 1 ? "copy" : "copies"}
-        </span>
+        <div className="snippet-footer-row">
+          {snippet.tags.length > 0 && (
+            <ul className="snippet-tags">
+              {snippet.tags.map((tag) => (
+                <li key={tag} className="snippet-tag">
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          )}
+          <span className="snippet-copies">
+            {snippet.times_copied} {snippet.times_copied === 1 ? "copy" : "copies"}
+          </span>
+        </div>
+        <span className="snippet-owner">{displayOwner(snippet.owner_username)}</span>
       </footer>
 
       {confirmingDelete && (
