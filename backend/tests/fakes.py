@@ -141,6 +141,14 @@ class FakeCollection:
     async def count_documents(self, query):
         return sum(1 for doc in self.documents if self._matches(doc, query))
 
+    async def distinct(self, field: str, query=None):
+        values = set()
+        for doc in self.documents:
+            if query is None or self._matches(doc, query):
+                if field in doc:
+                    values.add(doc[field])
+        return sorted(values)
+
 
 class FakeCursor:
     def __init__(self, documents):

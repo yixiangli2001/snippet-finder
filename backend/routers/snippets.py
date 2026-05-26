@@ -112,6 +112,32 @@ async def get_snippets(
     return {"items": items, "total": total}
 
 
+@router.get("/languages", response_model=list[str])
+async def get_languages(
+    current_user: UserInDB | None = Depends(get_optional_user),
+):
+    """Return sorted distinct languages across all snippets visible to the requester."""
+    if current_user and current_user.role == "admin":
+        query = {}
+    elif current_user:
+        query = {
+            "$or": [
+                {"is_public": True},
+                {"is_public": {"$exists": False}},
+                {"owner_id": ObjectId(current_user.id)},
+            ]
+        }
+    else:
+        query = {
+            "$or": [
+                {"is_public": True},
+                {"is_public": {"$exists": False}},
+            ]
+        }
+    languages = await snippets_collection.distinct("language", query)
+    return sorted(languages)
+
+
 @router.get("/{snippet_id}", response_model=SnippetResponse)
 async def get_snippet(
     snippet_id: str,

@@ -44,12 +44,12 @@ def use_fake_data(monkeypatch, snippets=None, user_documents=None, collections=N
     return user_documents[0], user_documents[1], snippet_collection, collection_collection
 
 
-def snippet(title, owner_id=None, is_public=False):
+def snippet(title, owner_id=None, is_public=False, language="python"):
     return {
         "_id": ObjectId(),
         "owner_id": owner_id,
         "title": title,
-        "language": "python",
+        "language": language,
         "code": "print('hi')",
         "description": None,
         "tags": [],
@@ -273,6 +273,40 @@ def test_owner_can_toggle_visibility(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["is_public"] is True
+
+
+def test_languages_returns_distinct_languages_for_visible_snippets(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    use_fake_data(monkeypatch, [
+        snippet("pub py",   owner_id=alice["_id"], is_public=True,  language="python"),
+        snippet("priv js",  owner_id=alice["_id"], is_public=False, language="javascript"),
+        snippet("pub sql",  owner_id=bob["_id"],   is_public=True,  language="sql"),
+        snippet("priv go",  owner_id=bob["_id"],   is_public=False, language="go"),
+    ], [alice, bob])
+    client = TestClient(app)
+
+    # Unauthenticated: only public snippet languages
+    response = client.get("/snippets/languages")
+    assert response.status_code == 200
+    assert response.json() == ["python", "sql"]
+
+    # Alice: adds her own private snippet's language
+    response = client.get("/snippets/languages", headers=auth_header(alice))
+    assert response.json() == ["javascript", "python", "sql"]
+
+
+def test_languages_admin_sees_all(monkeypatch):
+    admin = make_user("admin@example.com", "admin", role="admin")
+    alice = make_user("alice@example.com", "alice")
+    use_fake_data(monkeypatch, [
+        snippet("pub",  owner_id=alice["_id"], is_public=True,  language="python"),
+        snippet("priv", owner_id=alice["_id"], is_public=False, language="rust"),
+    ], [admin, alice])
+    client = TestClient(app)
+
+    response = client.get("/snippets/languages", headers=auth_header(admin))
+    assert response.json() == ["python", "rust"]
 
 
 def test_snippets_pagination_returns_page_and_total(monkeypatch):
