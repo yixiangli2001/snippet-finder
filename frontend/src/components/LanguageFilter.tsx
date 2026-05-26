@@ -10,20 +10,23 @@ export default function LanguageFilter({ languages, value, onChange }: Props) {
   if (languages.length === 0) return null;
 
   return (
-    <div className="filter-bar">
-      <select
-        className="filter-dropdown"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        aria-label="Filter by language"
+    <div className="lang-filter" role="group" aria-label="Filter by language">
+      <button
+        className={`lang-chip${value === '' ? ' lang-chip--active' : ''}`}
+        onClick={() => onChange('')}
       >
-        <option value="">All languages</option>
-        {languages.map(lang => (
-          <option key={lang} value={lang}>
-            {lang.toUpperCase()}
-          </option>
-        ))}
-      </select>
+        All
+      </button>
+      {languages.map(lang => (
+        <button
+          key={lang}
+          className={`lang-chip${value === lang ? ' lang-chip--active' : ''}`}
+          onClick={() => onChange(lang === value ? '' : lang)}
+          aria-pressed={value === lang}
+        >
+          {lang.toUpperCase()}
+        </button>
+      ))}
     </div>
   );
 }
