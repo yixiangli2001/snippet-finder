@@ -5,65 +5,280 @@
   min-height: 100svh;
 }
 
-/* ── Header ──────────────────────────────────────────────── */
+/* ── Integrated Bento Header ─────────────────────────── */
 .app-header {
   position: sticky;
-  top: 0;
-  z-index: 50;
+  top: 12px;
+  z-index: 1000;
   display: flex;
-  align-items: center;
   justify-content: center;
   padding: 0 24px;
-  height: 56px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-
-  @media (max-width: 768px) {
-    padding: 0 16px;
-  }
+  height: 64px;
+  margin: 20px 0;
+  pointer-events: none; /* Let clicks pass through to empty space if needed */
 }
 
 .header-inner {
+  pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
-  max-width: 1200px;
-  justify-content: center;
+  max-width: 1400px;
+  background: oklch(from var(--bg) l c h / 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0 20px;
+  box-shadow: var(--shadow-lg);
+  animation: slide-down 0.5s var(--ease-out-expo) backwards;
+  will-change: backdrop-filter;
+}
 
-  @media (max-width: 768px) {
-    gap: 10px;
-  }
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .app-logo {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 850;
   color: var(--text-h);
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-  flex-shrink: 0;
+  letter-spacing: -0.05em;
   text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 8px;
 }
 
 .app-logo span {
   color: var(--accent);
 }
 
-/* ── Search ──────────────────────────────────────────────── */
+/* ── Integrated Header Navigation ────────────────────── */
+.header-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-subtle);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color var(--duration-fast) var(--ease-out-quart),
+              background var(--duration-fast) var(--ease-out-quart);
+}
+
+.nav-link:hover {
+  color: var(--text-h);
+  background: oklch(from var(--text) l c h / 0.05);
+}
+
+.nav-link--active {
+  color: #fff !important; /* stays white even on hover */
+  background: var(--accent) !important;
+  box-shadow: 0 2px 8px oklch(from var(--accent) l c h / 0.3);
+}
+
+/* ── Search Bar Polishing ────────────────────────────── */
+.search-wrap {
+  flex: 1;
+  max-width: 600px;
+}
+
+.search-input {
+  height: 40px;
+  background: oklch(from var(--bg-subtle) l c h / 0.5);
+}
+
+/* ── Header Actions ──────────────────────────────────── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto; /* pin to right edge; search-wrap fills the rest */
+}
+
+.action-btn, .user-btn, .theme-btn, .auth-trigger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  border-radius: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out-quart);
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.action-btn { width: 44px; }
+.theme-btn { width: 44px; }
+
+.user-btn {
+  padding: 0 14px;
+  gap: 8px;
+}
+
+.user-btn-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-trigger-btn {
+  padding: 0 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+
+.action-btn:hover, .user-btn:hover, .theme-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: oklch(from var(--accent) l c h / 0.05);
+  transform: translateY(-1px);
+}
+
+.action-btn--active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* Labeled variant (Gear + "Manage") */
+.action-btn--labeled {
+  width: auto;
+  padding: 0 14px;
+  gap: 7px;
+}
+
+@media (max-width: 768px) {
+  .action-btn-text { display: none; }
+  .action-btn--labeled { width: 40px; padding: 0; gap: 0; }
+}
+
+/* Dropdown tweaks for new header */
+.user-dropdown {
+  top: calc(100% + 12px);
+  border-radius: 16px;
+  padding: 6px;
+}
+
+/* ── Media Queries for Header ─────────────────────────── */
+@media (max-width: 1024px) {
+  .header-nav { 
+    /* Keep nav visible but compact if needed */
+  } 
+}
+
+@media (max-width: 768px) {
+  .app-header { top: 0; padding: 0; height: 60px; }
+  .header-inner { border-radius: 0; border-inline: none; top: 0; height: 100%; }
+  .user-btn-name { display: none; }
+  .app-logo span { display: none; }
+}
+
+@media (max-width: 520px) {
+  .header-nav { display: none; }
+  #app-shell { padding-bottom: 60px; }
+}
+
+/* ── View tabs (REMOVED - now in header) ────────────────── */
+.view-tabs {
+  display: none;
+}
+
+/* ── Mobile bottom tab bar ───────────────────────────────── */
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    height: 56px;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.bottom-nav-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 44px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--text);
+  transition: color var(--duration-fast) var(--ease-out-quart);
+}
+
+.bottom-nav-link--active {
+  color: var(--accent);
+}
+
+.bottom-nav-link:hover {
+  color: var(--text-h);
+}
+
+/* ── Content wrapper ─────────────────────────────────────── */
+/* Constrains all route content to match the header width.   */
+.page-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CONTENT AREA STYLES
+   (Header styles above; component CSS in per-component files)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Search (complete rules) ─────────────────────────────── */
 .search-wrap {
   position: relative;
-  width: 100%;
-  max-width: 520px;
+  flex: 1;
+  max-width: 600px;
 }
 
 .search-input {
   width: 100%;
-  padding: 7px 12px;
+  height: 40px;
+  padding: 0 12px;
   font-family: var(--sans);
   font-size: 13px;
   color: var(--text-h);
-  background: var(--bg-subtle);
+  background: oklch(from var(--bg-subtle) l c h / 0.5);
   border: 1px solid var(--border);
   border-radius: 8px;
   outline: none;
@@ -100,7 +315,7 @@
 
   @media (max-width: 520px) {
     position: fixed;
-    top: 57px; /* below header */
+    top: 57px;
     left: 8px;
     right: 8px;
     max-height: calc(100dvh - 70px);
@@ -212,7 +427,6 @@
   color: inherit;
 }
 
-/* ── Keyword highlight ───────────────────────────────────── */
 .search-highlight {
   font-weight: 700;
   color: var(--accent);
@@ -249,188 +463,31 @@
   }
 }
 
-/* ── Theme toggle ────────────────────────────────────────── */
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-subtle);
-  color: var(--text);
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.theme-toggle:hover {
-  color: var(--accent);
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-}
-
-/* ── Header add button ───────────────────────────────────── */
-.header-add-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding: 6px 14px;
-  border-radius: 7px;
-  border: 1px solid transparent;
-  background: var(--accent);
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.header-add-btn:hover {
-  background: var(--accent-hover);
-}
-
-.header-add-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.header-add-btn-icon {
-  display: none;
-  font-size: 18px;
-  line-height: 1;
-}
-
-@media (max-width: 520px) {
-  .header-add-btn {
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .header-add-btn-text {
-    display: none;
-  }
-
-  .header-add-btn-icon {
-    display: block;
-  }
-
-  .app-logo {
-    font-size: 14px;
-  }
-}
-
-/* ── Header auth controls ─────────────────────────────────── */
-.header-auth-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding: 0 14px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-subtle);
-  color: var(--text-h);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
-}
-
-.header-auth-btn:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-  color: var(--accent);
-}
-
-.header-user-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.header-user-chip {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-h);
-  white-space: nowrap;
-  flex-shrink: 0;
-
-  @media (max-width: 520px) {
-    display: none;
-  }
-}
-
-/* ── User dropdown ────────────────────────────────────────── */
+/* ── User dropdown (complete) ────────────────────────────── */
 .user-dropdown-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.header-user-btn {
-  display: flex;
-  align-items: center;
-  height: 34px;
-  gap: 8px;
-  padding: 0 10px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-subtle);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.header-user-btn:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-}
-
-.header-user-btn-name {
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-h);
-  
-  @media (max-width: 600px) {
-    display: none;
-  }
-}
-
-.header-user-btn-chevron {
-  color: var(--text);
-  opacity: 0.6;
-}
-
 .user-dropdown {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 12px); /* new bento spacing */
   right: 0;
   min-width: 180px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 16px;   /* new bento radius */
   box-shadow: var(--shadow-lg);
-  padding: 5px;
+  padding: 6px;          /* new bento padding */
   z-index: 100;
   transform-origin: top right;
   animation: dropdownFade 0.15s ease-out;
 }
 
 @keyframes dropdownFade {
-  from { opacity: 0; transform: scale(0.95) translateY(-10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .user-dropdown-item {
@@ -441,7 +498,7 @@
   padding: 8px 12px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 10px;
   font-family: var(--sans);
   font-size: 13px;
   font-weight: 500;
@@ -467,6 +524,55 @@
   height: 1px;
   background: var(--border);
   margin: 5px 0;
+}
+
+/* ── Auth form inputs (shared across modals) ─────────────── */
+.auth-input {
+  box-sizing: border-box;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text-h);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 9px 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.auth-input--full {
+  width: 100%;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-password-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-hint {
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.auth-error {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--danger);
+  margin-top: 4px;
 }
 
 /* ── Auth modal ───────────────────────────────────────────── */
@@ -533,102 +639,15 @@
   text-decoration: underline;
 }
 
-.auth-input {
-  box-sizing: border-box;
-  font-family: var(--sans);
-  font-size: 13px;
-  color: var(--text-h);
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 9px 12px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.auth-input--full {
+.auth-modal-panel .snippet-btn {
   width: 100%;
-}
-
-.auth-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-bg);
-}
-
-.auth-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.auth-password-wrap {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.auth-hint {
-  font-size: 11px;
-  color: var(--text);
-  opacity: 0.7;
-}
-
-.auth-error {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--danger);
-  margin-top: 4px;
-}
-
-/* ── Admin header button ─────────────────────────────────── */
-.header-admin-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  gap: 6px;
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding: 0 12px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-subtle);
-  color: var(--text-h);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
-}
-
-.header-admin-btn:hover,
-.header-admin-btn--active {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-  color: var(--accent);
-}
-
-/* Hide the text label on small screens — shield icon alone is enough */
-@media (max-width: 600px) {
-  .header-admin-btn-text {
-    display: none;
-  }
-
-  .header-admin-btn {
-    padding: 6px 8px;
-  }
-}
-
-/* ── Admin panel → AdminPanel.css (imported by AdminPanel.tsx) ── */
-
-.snippet-grid--hidden {
-  display: none;
+  margin-top: 8px;
 }
 
 /* ── Settings modal ───────────────────────────────────────── */
 .settings-modal-panel {
   max-width: 480px;
-  padding: 32px 32px;
+  padding: 32px;
 }
 
 .settings-sections {
@@ -700,15 +719,10 @@
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateX(-4px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-.auth-modal-panel .snippet-btn {
-  width: 100%;
-  margin-top: 8px;
-}
-
-/* ── Create overlay ──────────────────────────────────────── */
+/* ── Overlays (modals, create forms) ─────────────────────── */
 .overlay-backdrop {
   position: fixed;
   inset: 0;
@@ -794,7 +808,7 @@
 /* ── Loading skeleton ────────────────────────────────────── */
 @keyframes shimmer {
   0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+  100% { background-position:  400px 0; }
 }
 
 .skeleton {
@@ -858,12 +872,6 @@
   border-radius: 20px;
 }
 
-.skeleton-search {
-  height: 34px;
-  width: 100%;
-  border-radius: 8px;
-}
-
 /* ── Error state ─────────────────────────────────────────── */
 .error-state {
   display: flex;
@@ -902,45 +910,6 @@
   margin-bottom: 8px;
 }
 
-/* ── View tabs (Snippets/Collections) ────────────────────── */
-.view-tabs {
-  display: flex;
-  gap: 0;
-  padding: 0 24px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-
-  @media (max-width: 768px) {
-    padding: 0 16px;
-  }
-}
-
-.view-tab {
-  flex: 0 0 auto;
-  padding: 12px 16px;
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-  position: relative;
-  top: 1px;
-}
-
-.view-tab:hover {
-  color: var(--accent);
-}
-
-.view-tab--active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-
 /* ── Page toolbar (Add button + optional filter) ─────────── */
 .page-toolbar {
   display: flex;
@@ -953,16 +922,51 @@
   }
 }
 
-/* When there is no left-side content (collections page) */
 .page-toolbar--end {
   justify-content: flex-end;
 }
 
-/* ── Language filter → LanguageFilter.css (imported by LanguageFilter.tsx) ── */
+/* ── Settings page ───────────────────────────────────────── */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 
-/* ── Collections → CollectionCard.css / CollectionPage.css ─────────────── */
-/* (imported by CollectionCard.tsx and CollectionPage.tsx)                   */
+.settings-page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
 
-/* ── Profile page → ProfilePage.css (imported by ProfilePage.tsx) ────────── */
+/* Single centred column — constrains both header and body to 900px */
+.settings-page-inner {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
 
-/* ── Pagination → Pagination.css (imported by Pagination.tsx) ────────────── */
+.settings-page-body {
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  @media (max-width: 768px) {
+    padding: 20px 16px;
+  }
+}
+
+.settings-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 28px 0;
+}
+
+/* ── Language filter → LanguageFilter.css ───────────────── */
+/* ── Collections  → CollectionCard.css / CollectionPage.css */
+/* ── Profile page → ProfilePage.css                         */
+/* ── Pagination   → Pagination.css                         */
