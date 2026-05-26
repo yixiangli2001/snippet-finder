@@ -1,30 +1,60 @@
 /* ── Card shell ─────────────────────────────────────────── */
 .snippet-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  --card-accent: oklch(65% 0.15 var(--lang-hue, 260));
+  --card-bg: oklch(from var(--card-accent) 99% 0.02 h);
+  --card-border: oklch(from var(--card-accent) 85% 0.12 h);
+  
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
   overflow: hidden;
   text-align: left;
   display: flex;
   flex-direction: column;
-  transition: border-color 0.18s;
+  transition: all var(--duration-mid) var(--ease-out-quart);
+  animation: snippet-entrance var(--duration-slow) var(--ease-out-quart) backwards;
+  height: 100%; /* Force fill grid cell */
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* ── Dark mode: lighter accent, same hue ─────────────────── */
+[data-theme="dark"] .snippet-card {
+  --card-accent: oklch(72% 0.13 var(--lang-hue, 250));
+  --card-bg: oklch(from var(--card-accent) 18% 0.06 h);
+  --card-border: oklch(from var(--card-accent) 28% 0.15 h);
+}
+
+@keyframes snippet-entrance {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .snippet-card:hover {
-  border-color: var(--accent-border);
+  border-color: var(--card-accent);
+  transform: translateY(-6px);
+  box-shadow: 
+    0 12px 24px -10px oklch(from var(--card-accent) 60% 0.15 h / 0.2),
+    var(--shadow-lg);
 }
 
-/* ── Header ──────────────────────────────────────────────── */
+/* ── Header (The Visual Anchor) ──────────────────────────── */
 .snippet-header {
-  padding: 14px 16px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 0;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .snippet-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  padding: 12px 20px;
+  background: var(--card-accent);
+  color: #fff;
+}
+
+[data-theme="dark"] .snippet-header-top {
+  background: oklch(from var(--card-accent) 35% 0.2 h);
 }
 
 .snippet-meta {
@@ -36,81 +66,233 @@
 .snippet-lang {
   font-family: var(--mono);
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 4px;
-  padding: 2px 7px;
+  padding: 1px 6px;
 }
 
 .snippet-visibility {
   font-size: 10px;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--social-bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 2px 7px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.snippet-visibility--public {
-  color: var(--text-h);
+.snippet-title-area {
+  padding: 16px 20px 14px;
 }
 
 .snippet-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 850;
   color: var(--text-h);
-  margin: 0 0 2px;
-  letter-spacing: -0.01em;
-  line-height: 1.4;
+  margin: 0 0 6px;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
 }
 
 .snippet-description {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text);
   margin: 0;
   line-height: 1.5;
+  opacity: 0.9;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* ── Edit / Delete action buttons ────────────────────────── */
+/* ── Action buttons in Header ────────────────────────────── */
 .snippet-actions {
   display: flex;
   gap: 4px;
-  flex-shrink: 0;
 }
 
 .snippet-action-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  color: var(--text);
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--duration-fast);
+}
+
+/* Expand touch hit area to ~44×44px without affecting card layout */
+.snippet-action-btn::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
 }
 
 .snippet-action-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 .snippet-action-btn--delete:hover {
-  color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
-  background: color-mix(in srgb, var(--danger) 6%, transparent);
+  background: var(--danger);
+  border-color: var(--danger);
 }
 
-/* ── Delete confirmation overlay ─────────────────────────── */
+/* ── Code Area (The Hero) ────────────────────────────────── */
+.snippet-code-wrapper {
+  position: relative;
+  flex: 1; /* Grow to fill available height in equal-row grid */
+  overflow: hidden;
+  cursor: pointer;
+  background: oklch(from var(--card-accent) 96% 0.03 h);
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+}
+
+[data-theme="dark"] .snippet-code-wrapper {
+  background: oklch(from var(--card-accent) 12% 0.05 h);
+}
+
+.snippet-pre {
+  margin: 0;
+  padding: 20px;
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1; /* Fill the wrapper */
+  box-sizing: border-box;
+}
+
+.snippet-pre code {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-h);
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  display: block;
+  white-space: pre;
+}
+
+.snippet-copy-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--bg);
+  color: var(--card-accent);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all var(--duration-mid) var(--ease-out-quart);
+  box-shadow: var(--shadow-md);
+}
+
+.snippet-code-wrapper:hover .snippet-copy-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.snippet-code-wrapper.copied .snippet-copy-btn {
+  opacity: 1;
+  color: #fff;
+  border-color: var(--card-accent);
+  background: var(--card-accent);
+  animation: copy-pop 0.5s var(--ease-out-expo);
+}
+
+@keyframes copy-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.4); }
+  60% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.snippet-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--card-border);
+}
+
+.snippet-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.snippet-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.snippet-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tag-color, var(--text));
+  background: oklch(from var(--tag-color) l c h / 0.12);
+  border: 1px solid oklch(from var(--tag-color) l c h / 0.3);
+  border-radius: 20px;
+  padding: 1px 10px;
+}
+
+.snippet-tag:nth-child(5n + 1) { --tag-color: var(--color-ruby); }
+.snippet-tag:nth-child(5n + 2) { --tag-color: var(--color-emerald); }
+.snippet-tag:nth-child(5n + 3) { --tag-color: var(--color-sky); }
+.snippet-tag:nth-child(5n + 4) { --tag-color: var(--color-indigo); }
+.snippet-tag:nth-child(5n + 5) { --tag-color: var(--color-violet); }
+
+.snippet-copies {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.snippet-owner {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.snippet-owner--link {
+  text-decoration: none;
+  color: var(--card-accent);
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+
+.snippet-owner--link:hover {
+  text-decoration: underline;
+  opacity: 1;
+}
+
+/* ── Delete confirmation dialog ──────────────────────────── */
 .delete-overlay {
   position: fixed;
   inset: 0;
@@ -180,147 +362,22 @@
   justify-content: center;
 }
 
-.snippet-btn--danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 500;
-  color: #fff;
-  background: var(--danger);
-  border: 1px solid transparent;
-  border-radius: 7px;
-  padding: 6px 16px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.snippet-btn--danger:hover {
-  background: color-mix(in srgb, var(--danger) 85%, #000);
-}
-
-/* ── Code block ──────────────────────────────────────────── */
-.snippet-code-wrapper {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-/* ── Copy icon indicator ─────────────────────────────────── */
-.snippet-copy-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.snippet-code-wrapper:hover .snippet-copy-btn {
-  opacity: 1;
-}
-
-/* Copied state — blue flash */
-.snippet-code-wrapper.copied .snippet-copy-btn {
-  opacity: 1;
-  color: var(--accent);
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-}
-
-.snippet-pre {
-  margin: 0;
-  padding: 14px 16px;
-  background: var(--code-bg);
-  overflow-x: auto;
+/* ── Inline edit mode ────────────────────────────────────── */
+.snippet-card--editing {
+  outline: 2px solid var(--accent-border);
   overflow-y: auto;
-  height: 100%;
-  box-sizing: border-box;
+  align-self: start;        /* let the card grow past grid-row height */
+  transform: none !important; /* cancel hover lift while editing */
 }
 
-.snippet-pre code {
-  font-family: var(--mono);
-  font-size: 12.5px;
-  line-height: 1.65;
-  color: var(--text-h);
-  background: none;
-  padding: 0;
-  border-radius: 0;
-  display: block;
-  white-space: pre;
-}
-
-/* ── Footer ──────────────────────────────────────────────── */
-.snippet-footer {
+.snippet-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 16px;
-  border-top: 1px solid var(--border);
-}
-
-.snippet-footer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 8px;
+  padding: 16px;
 }
 
-.snippet-owner {
-  font-size: 11px;
-  color: var(--text);
-  opacity: 0.7;
-}
-
-.snippet-owner--link {
-  text-decoration: none;
-  transition: color 0.15s, opacity 0.15s;
-}
-
-.snippet-owner--link:hover {
-  color: var(--accent);
-  opacity: 1;
-}
-
-.snippet-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.snippet-tag {
-  font-size: 11px;
-  color: var(--text);
-  background: var(--social-bg);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 1px 8px;
-}
-
-.snippet-copies {
-  font-size: 11px;
-  color: var(--text);
-  white-space: nowrap;
-  flex-shrink: 0;
-  opacity: 0.7;
-}
-
-/* ── Field wrapper + validation errors ───────────────────── */
+/* ── Form inputs for edit modal / create modal ───────────── */
 .snippet-field {
   display: flex;
   flex-direction: column;
@@ -338,12 +395,6 @@
   }
 }
 
-.snippet-edit-input--error,
-.snippet-edit-input--error:focus {
-  border-color: var(--danger);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 10%, transparent);
-}
-
 .snippet-field-error {
   font-size: 11px;
   color: var(--danger);
@@ -351,16 +402,10 @@
   padding-left: 2px;
 }
 
-/* ── Inline edit form ────────────────────────────────────── */
-.snippet-card--editing {
-  outline: 2px solid var(--accent-border);
-}
-
-.snippet-edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
+.snippet-edit-input--error,
+.snippet-edit-input--error:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 .snippet-edit-row {
@@ -369,12 +414,6 @@
 
   @media (max-width: 520px) {
     flex-direction: column;
-  }
-}
-
-@media (max-width: 520px) {
-  .snippet-edit-lang {
-    width: 100%;
   }
 }
 
@@ -423,14 +462,13 @@
   width: 100%;
 }
 
-/* "Other" mode: back button sits inside the input on the right */
 .language-other-row {
   position: relative;
 }
 
 .language-other-row .snippet-edit-lang {
   width: 100%;
-  padding-right: 26px; /* room for the back button */
+  padding-right: 26px;
 }
 
 .language-back-btn {
@@ -488,6 +526,7 @@
   margin-top: 2px;
 }
 
+/* ── Shared buttons (used across modals and cards) ───────── */
 .snippet-btn {
   display: inline-flex;
   align-items: center;
@@ -523,3 +562,24 @@
 .snippet-btn--primary:hover {
   background: var(--accent-hover);
 }
+
+.snippet-btn--danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--danger);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.snippet-btn--danger:hover {
+  background: color-mix(in srgb, var(--danger) 85%, #000);
+}
+

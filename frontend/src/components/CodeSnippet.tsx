@@ -1,4 +1,13 @@
 import { useState } from "react";
+
+function langHue(lang: string): number {
+  const s = lang.toLowerCase().trim();
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  }
+  return h % 360;
+}
 import "./CodeSnippet.css";
 import { FormField } from "./FormField";
 import { LanguageSelect } from "./LanguageSelect";
@@ -6,22 +15,7 @@ import { DeleteDialog } from "./DeleteDialog";
 import { CopyIcon, CheckIcon, EditIcon, EyeIcon, EyeOffIcon, PlusIcon, TrashIcon, XIcon } from "./Icons";
 import AddToCollectionModal from "./AddToCollectionModal";
 import { Link } from "react-router-dom";
-import { displayOwner } from "../utils/author";
-
-export interface Snippet {
-  id: string;
-  owner_id: string | null;
-  owner_username: string | null;
-  title: string;
-  language: string;
-  code: string;
-  description: string;
-  tags: string[];
-  is_public: boolean;
-  times_copied: number;
-  created_at: string;
-  updated_at: string;
-}
+import { type Snippet } from "../types/snippet";
 
 interface Props {
   snippet: Snippet;
@@ -46,7 +40,7 @@ export default function CodeSnippet({
   onEdit,
   onToggleVisibility,
   onRemove,
-  onCollectionChanged
+  onCollectionChanged,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -84,7 +78,6 @@ export default function CodeSnippet({
     const errors = validateEditForm();
     setEditErrors(errors);
     if (Object.keys(errors).length > 0) return;
-
     onEdit?.(snippet.id, {
       title: editForm.title.trim(),
       language: editForm.language.toUpperCase().trim(),
@@ -106,6 +99,7 @@ export default function CodeSnippet({
     setIsEditing(false);
   }
 
+  // ── Inline edit form ───────────────────────────────────────
   if (isEditing) {
     return (
       <article className="snippet-card snippet-card--editing">
@@ -116,10 +110,7 @@ export default function CodeSnippet({
                 className={`snippet-edit-input${editErrors.title ? " snippet-edit-input--error" : ""}`}
                 placeholder="Title *"
                 value={editForm.title}
-                onChange={(e) => {
-                  setEditForm((f) => ({ ...f, title: e.target.value }));
-                  clearError("title");
-                }}
+                onChange={(e) => { setEditForm((f) => ({ ...f, title: e.target.value })); clearError("title"); }}
               />
             </FormField>
             <FormField error={editErrors.language} className="snippet-field--lang">
@@ -136,10 +127,7 @@ export default function CodeSnippet({
               className={`snippet-edit-textarea snippet-edit-code${editErrors.code ? " snippet-edit-input--error" : ""}`}
               placeholder="Code *"
               value={editForm.code}
-              onChange={(e) => {
-                setEditForm((f) => ({ ...f, code: e.target.value }));
-                clearError("code");
-              }}
+              onChange={(e) => { setEditForm((f) => ({ ...f, code: e.target.value })); clearError("code"); }}
               rows={8}
               spellCheck={false}
             />
@@ -158,24 +146,25 @@ export default function CodeSnippet({
             onChange={(e) => setEditForm((f) => ({ ...f, tags: e.target.value }))}
           />
           <div className="snippet-edit-actions">
-            <button className="snippet-btn snippet-btn--ghost" onClick={handleCancelEdit}>
-              Cancel
-            </button>
-            <button className="snippet-btn snippet-btn--primary" onClick={handleSave}>
-              Save
-            </button>
+            <button className="snippet-btn snippet-btn--ghost" onClick={handleCancelEdit}>Cancel</button>
+            <button className="snippet-btn snippet-btn--primary" onClick={handleSave}>Save</button>
           </div>
         </div>
       </article>
     );
   }
 
+  // ── Normal card view ───────────────────────────────────────
   return (
-    <article className="snippet-card">
+    <article
+      className="snippet-card"
+      data-lang={snippet.language.toLowerCase()}
+      style={{ '--lang-hue': langHue(snippet.language) } as React.CSSProperties}
+    >
       <header className="snippet-header">
         <div className="snippet-header-top">
           <div className="snippet-meta">
-            <span className="snippet-lang">{snippet.language}</span>
+            <span className="snippet-lang" data-lang={snippet.language.toLowerCase()}>{snippet.language}</span>
             <span className={snippet.is_public ? "snippet-visibility snippet-visibility--public" : "snippet-visibility"}>
               {snippet.is_public ? "Public" : "Private"}
             </span>
@@ -231,10 +220,12 @@ export default function CodeSnippet({
             )}
           </div>
         </div>
-        <h2 className="snippet-title">{snippet.title}</h2>
-        {snippet.description && (
-          <p className="snippet-description">{snippet.description}</p>
-        )}
+        <div className="snippet-title-area">
+          <h2 className="snippet-title">{snippet.title}</h2>
+          {snippet.description && (
+            <p className="snippet-description">{snippet.description}</p>
+          )}
+        </div>
       </header>
 
       <div
@@ -245,7 +236,7 @@ export default function CodeSnippet({
         onKeyDown={(e) => e.key === "Enter" && handleCopy()}
         aria-label="Copy code"
       >
-        <span className="snippet-copy-btn" aria-hidden="true" title={copied ? "Copied!" : "Copy code"}>
+        <span className="snippet-copy-btn" aria-hidden="true">
           {copied ? <CheckIcon /> : <CopyIcon />}
         </span>
         <pre className="snippet-pre">
@@ -258,9 +249,7 @@ export default function CodeSnippet({
           {snippet.tags.length > 0 && (
             <ul className="snippet-tags">
               {snippet.tags.map((tag) => (
-                <li key={tag} className="snippet-tag">
-                  {tag}
-                </li>
+                <li key={tag} className="snippet-tag">{tag}</li>
               ))}
             </ul>
           )}
@@ -268,22 +257,21 @@ export default function CodeSnippet({
             {snippet.times_copied} {snippet.times_copied === 1 ? "copy" : "copies"}
           </span>
         </div>
-        {snippet.owner_username ? (
-          <Link to={`/users/${snippet.owner_username}`} className="snippet-owner snippet-owner--link">
-            {snippet.owner_username}
-          </Link>
-        ) : (
-          <span className="snippet-owner">Anonymous</span>
-        )}
+        <div className="snippet-footer-row">
+          {snippet.owner_username ? (
+            <Link to={`/users/${snippet.owner_username}`} className="snippet-owner snippet-owner--link">
+              @{snippet.owner_username}
+            </Link>
+          ) : (
+            <span className="snippet-owner">Anonymous</span>
+          )}
+        </div>
       </footer>
 
       {confirmingDelete && (
         <DeleteDialog
           title={snippet.title}
-          onConfirm={() => {
-            onDelete?.(snippet.id);
-            setConfirmingDelete(false);
-          }}
+          onConfirm={() => { onDelete?.(snippet.id); setConfirmingDelete(false); }}
           onCancel={() => setConfirmingDelete(false)}
         />
       )}
@@ -294,10 +282,7 @@ export default function CodeSnippet({
           token={token}
           currentUserId={currentUserId ?? ""}
           onClose={() => setShowAddToCollection(false)}
-          onSuccess={() => {
-            setShowAddToCollection(false);
-            onCollectionChanged?.();
-          }}
+          onSuccess={() => { setShowAddToCollection(false); onCollectionChanged?.(); }}
         />
       )}
     </article>
