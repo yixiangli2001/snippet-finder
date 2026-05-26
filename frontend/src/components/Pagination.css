@@ -15,7 +15,8 @@
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: 7px;
-  padding: 6px 14px;
+  padding: 0 14px;
+  min-height: 44px;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }

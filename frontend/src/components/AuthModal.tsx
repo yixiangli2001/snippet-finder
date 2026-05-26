@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface Props {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -14,6 +15,7 @@ export function AuthModal({ onLogin, onRegister, onClose, initialMode = 'log in'
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const panelRef = useFocusTrap(onClose);
 
   function switchMode(next: 'log in' | 'sign up') {
     setMode(next);
@@ -40,7 +42,7 @@ export function AuthModal({ onLogin, onRegister, onClose, initialMode = 'log in'
 
   return (
     <div className="overlay-backdrop" onClick={onClose}>
-      <div className="overlay-panel auth-modal-panel" onClick={(e) => e.stopPropagation()}>
+      <div className="overlay-panel auth-modal-panel" ref={panelRef} onClick={(e) => e.stopPropagation()}>
         <div className="auth-modal-head">
           <h2 className="overlay-title">{mode === 'log in' ? 'Welcome Back' : 'Create Account'}</h2>
           <button className="auth-modal-close" type="button" onClick={onClose} aria-label="Close">
@@ -57,7 +59,7 @@ export function AuthModal({ onLogin, onRegister, onClose, initialMode = 'log in'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              autoFocus
+
             />
             {mode === 'sign up' && (
               <input
