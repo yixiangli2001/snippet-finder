@@ -6,6 +6,7 @@ import { AuthModal } from './components/AuthModal';
 import CollectionCard from './components/CollectionCard';
 import CollectionPage from './components/CollectionPage';
 import CreateCollectionModal from './components/CreateCollectionModal';
+import LanguageFilter from './components/LanguageFilter';
 import Pagination from './components/Pagination';
 import { SettingsModal } from './components/SettingsModal';
 import CodeSnippet from './components/CodeSnippet';
@@ -14,6 +15,7 @@ import SearchBar from './components/SearchBar';
 import { ChevronDownIcon, LogOutIcon, MoonIcon, SunIcon, UserIcon } from './components/Icons';
 import { useSnippets } from './hooks/useSnippets';
 import { useCollections } from './hooks/useCollections';
+import { useLanguages } from './hooks/useLanguages';
 import { useSearch } from './hooks/useSearch';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
@@ -30,6 +32,8 @@ export default function App() {
     total: snippetsTotal,
     limit: snippetsLimit,
     setPage: setSnippetsPage,
+    language: snippetsLanguage,
+    setLanguage: setSnippetsLanguage,
     addSnippet,
     handleCopy,
     handleDelete,
@@ -50,6 +54,7 @@ export default function App() {
     handleEdit: handleEditCollection,
     handleToggleVisibility: handleToggleCollectionVisibility,
   } = useCollections(auth.token);
+  const languages = useLanguages(auth.token);
   const search = useSearch(handleCopy, auth.token);
   const { theme, toggleTheme } = useTheme();
   const [homeView, setHomeView] = useState<HomeView>('snippets');
@@ -228,6 +233,14 @@ export default function App() {
                 Collections
               </button>
             </div>
+
+            {homeView === 'snippets' && (
+              <LanguageFilter
+                languages={languages}
+                value={snippetsLanguage}
+                onChange={setSnippetsLanguage}
+              />
+            )}
 
             {homeView === 'snippets' ? (
               <>

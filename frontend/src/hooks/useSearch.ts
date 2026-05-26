@@ -23,8 +23,8 @@ export function useSearch(onCopy: (id: string) => void, token: string | null) {
           headers: authHeaders(token),
         });
         if (!res.ok) return;
-        const data: Snippet[] = await res.json();
-        setResults(data);
+        const data: { items: Snippet[] } = await res.json();
+        setResults(data.items);
         setIsOpen(true);
         setSelectedIdx(-1);
       } catch {

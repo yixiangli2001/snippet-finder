@@ -27,6 +27,7 @@ export function useSnippets(token: string | null) {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [language, setLanguageState] = useState('');
   const prevToken = useRef(token);
 
   // Reset to page 1 when the user logs in or out
@@ -34,14 +35,21 @@ export function useSnippets(token: string | null) {
     if (prevToken.current !== token) {
       prevToken.current = token;
       setPage(1);
+      setLanguageState('');
     }
   }, [token]);
+
+  function setLanguage(lang: string) {
+    setLanguageState(lang);
+    setPage(1);
+  }
 
   useEffect(() => {
     setLoading(true);
     setError(null);
     const skip = (page - 1) * LIMIT;
-    fetch(`${API}/snippets?skip=${skip}&limit=${LIMIT}`, { headers: authHeaders(token) })
+    const langParam = language ? `&language=${encodeURIComponent(language)}` : '';
+    fetch(`${API}/snippets?skip=${skip}&limit=${LIMIT}${langParam}`, { headers: authHeaders(token) })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -52,7 +60,7 @@ export function useSnippets(token: string | null) {
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [token, page]);
+  }, [token, page, language]);
 
   function addSnippet(snippet: Snippet) {
     setSnippets((prev) => [snippet, ...prev]);
@@ -141,6 +149,7 @@ export function useSnippets(token: string | null) {
   return {
     snippets, loading, error,
     page, total, limit: LIMIT, setPage,
+    language, setLanguage,
     addSnippet, handleCopy, handleDelete, handleEdit, handleToggleVisibility,
   };
 }
