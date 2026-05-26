@@ -1,66 +1,35 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
-import CollectionCard from './components/CollectionCard';
 import CollectionPage from './components/CollectionPage';
+import CollectionsPage from './components/CollectionsPage';
 import ProfilePage from './components/ProfilePage';
-import CreateCollectionModal from './components/CreateCollectionModal';
-import LanguageFilter from './components/LanguageFilter';
-import Pagination from './components/Pagination';
 import { SettingsModal } from './components/SettingsModal';
-import CodeSnippet from './components/CodeSnippet';
-import CreateSnippetModal from './components/CreateSnippetModal';
+import SnippetsPage from './components/SnippetsPage';
 import SearchBar from './components/SearchBar';
 import { ChevronDownIcon, LogOutIcon, MoonIcon, SunIcon, UserIcon } from './components/Icons';
-import { useSnippets } from './hooks/useSnippets';
-import { useCollections } from './hooks/useCollections';
-import { useLanguages } from './hooks/useLanguages';
 import { useSearch } from './hooks/useSearch';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
+import { API } from './constants';
 
-type HomeView = 'snippets' | 'collections';
+// Routes on which the Snippets / Collections nav tabs are shown
+const HOME_PATHS = ['/snippets', '/collections'];
 
 export default function App() {
+  // ── Data hooks ─────────────────────────────────────────────
   const auth = useAuth();
-  const {
-    snippets,
-    loading,
-    error,
-    page: snippetsPage,
-    total: snippetsTotal,
-    limit: snippetsLimit,
-    setPage: setSnippetsPage,
-    language: snippetsLanguage,
-    setLanguage: setSnippetsLanguage,
-    addSnippet,
-    handleCopy,
-    handleDelete,
-    handleEdit,
-    handleToggleVisibility,
-  } = useSnippets(auth.token);
-  const {
-    collections,
-    loading: collectionsLoading,
-    error: collectionsError,
-    page: collectionsPage,
-    total: collectionsTotal,
-    limit: collectionsLimit,
-    setPage: setCollectionsPage,
-    refreshCollections,
-    addCollection,
-    handleDelete: handleDeleteCollection,
-    handleEdit: handleEditCollection,
-    handleToggleVisibility: handleToggleCollectionVisibility,
-  } = useCollections(auth.token);
-  const languages = useLanguages(auth.token);
-  const search = useSearch(handleCopy, auth.token);
+  // Search lives in the header; it only needs to fire the copy PATCH,
+  // not sync with the snippets page state.
+  const handleSearchCopy = (id: string) => {
+    fetch(`${API}/snippets/${id}/copy`, { method: 'PATCH' }).catch(() => {});
+  };
+  const search = useSearch(handleSearchCopy, auth.token);
   const { theme, toggleTheme } = useTheme();
-  const [homeView, setHomeView] = useState<HomeView>('snippets');
-  const [showCreate, setShowCreate] = useState(false);
-  const [showCreateCollection, setShowCreateCollection] = useState(false);
+
+  // ── UI state ───────────────────────────────────────────────
   const [showAuth, setShowAuth] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -68,6 +37,7 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Close the user dropdown when the user clicks anywhere outside it
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -78,98 +48,33 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (loading) {
-    return (
-      <div id="app-shell">
-        <header className="app-header">
-          <div className="header-inner">
-            <span className="app-logo">Snippet <span>Finder</span></span>
-            <div className="search-wrap">
-              <div className="skeleton skeleton-search" />
-            </div>
-          </div>
-        </header>
-        <div className="snippet-grid">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="skeleton-card">
-              <div className="skeleton-card-header">
-                <div className="skeleton skeleton-badge" />
-                <div className="skeleton skeleton-title" />
-              </div>
-              <div className="skeleton skeleton-code" />
-              <div className="skeleton-card-footer">
-                <div className="skeleton skeleton-tag" />
-                <div className="skeleton skeleton-tag" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div id="app-shell">
-        <header className="app-header">
-          <div className="header-inner">
-            <span className="app-logo">Snippet <span>Finder</span></span>
-          </div>
-        </header>
-        <div className="error-state">
-          <p className="error-state-icon">!</p>
-          <p className="error-state-title">Failed to load snippets</p>
-          <p className="error-state-detail">{error}</p>
-          <button className="snippet-btn snippet-btn--primary" onClick={() => window.location.reload()}>
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const isHomePath = HOME_PATHS.includes(location.pathname);
 
   return (
     <div id="app-shell">
+
+      {/* ── Sticky header ───────────────────────────────────── */}
       <header className="app-header">
         <div className="header-inner">
           <span className="app-logo">
             Snippet <span>Finder</span>
           </span>
+
+          {/* Global snippet search */}
           <SearchBar {...search} />
 
-          {location.pathname === '/' && homeView === 'snippets' && (
-            <button
-              className="header-add-btn"
-              onClick={() => setShowCreate(true)}
-              disabled={!auth.user}
-              title={auth.user ? 'Add snippet' : 'Log in to add snippets'}
-            >
-              <span className="header-add-btn-text">Add Snippet</span>
-              <span className="header-add-btn-icon">+</span>
-            </button>
-          )}
-
-          {location.pathname === '/' && homeView === 'collections' && (
-            <button
-              className="header-add-btn"
-              onClick={() => setShowCreateCollection(true)}
-              disabled={!auth.user}
-              title={auth.user ? 'Add collection' : 'Log in to add collections'}
-            >
-              <span className="header-add-btn-text">Add Collection</span>
-              <span className="header-add-btn-icon">+</span>
-            </button>
-          )}
-
+          {/* Admin toggle — only visible to users with the admin role */}
           {auth.user?.role === 'admin' && (
             <button
               className={`header-admin-btn${location.pathname === '/admin' ? ' header-admin-btn--active' : ''}`}
-              onClick={() => navigate(location.pathname === '/admin' ? '/' : '/admin')}
+              onClick={() => navigate(location.pathname === '/admin' ? '/snippets' : '/admin')}
             >
               Admin
             </button>
           )}
 
+          {/* User dropdown (logged in) or Log in button (logged out).
+              Waits for auth to resolve before rendering to avoid a flash. */}
           {!auth.loadingUser && (
             auth.user ? (
               <div className="user-dropdown-wrap" ref={dropdownRef}>
@@ -217,136 +122,52 @@ export default function App() {
         </div>
       </header>
 
+      {/* Nav tabs — shown only on the two main content pages */}
+      {isHomePath && (
+        <nav className="view-tabs">
+          <NavLink
+            to="/snippets"
+            className={({ isActive }) => `view-tab${isActive ? ' view-tab--active' : ''}`}
+          >
+            Snippets
+          </NavLink>
+          <NavLink
+            to="/collections"
+            className={({ isActive }) => `view-tab${isActive ? ' view-tab--active' : ''}`}
+          >
+            Collections
+          </NavLink>
+        </nav>
+      )}
+
+      {/* ── Routes ──────────────────────────────────────────── */}
       <Routes>
-        <Route path="/" element={
-          <>
-            <div className="view-tabs">
-              <button
-                className={`view-tab${homeView === 'snippets' ? ' view-tab--active' : ''}`}
-                onClick={() => setHomeView('snippets')}
-              >
-                Snippets
-              </button>
-              <button
-                className={`view-tab${homeView === 'collections' ? ' view-tab--active' : ''}`}
-                onClick={() => setHomeView('collections')}
-              >
-                Collections
-              </button>
-            </div>
+        {/* Root redirects to snippets */}
+        <Route path="/" element={<Navigate to="/snippets" replace />} />
 
-            {homeView === 'snippets' && (
-              <LanguageFilter
-                languages={languages}
-                value={snippetsLanguage}
-                onChange={setSnippetsLanguage}
-              />
-            )}
+        {/* Main content pages — each owns its own data and Add button */}
+        <Route path="/snippets" element={<SnippetsPage />} />
+        <Route path="/collections" element={<CollectionsPage />} />
 
-            {homeView === 'snippets' ? (
-              <>
-                <div className="snippet-grid">
-                  {snippets.map(snippet => (
-                    <CodeSnippet
-                      key={snippet.id}
-                      snippet={snippet}
-                      token={auth.token || undefined}
-                      currentUserId={auth.user?.id || null}
-                      canEdit={Boolean(auth.user && (snippet.owner_id === auth.user.id || auth.user.role === 'admin'))}
-                      onCopy={handleCopy}
-                      onDelete={handleDelete}
-                      onEdit={handleEdit}
-                      onToggleVisibility={handleToggleVisibility}
-                      onCollectionChanged={refreshCollections}
-                    />
-                  ))}
-                </div>
-                <Pagination
-                  page={snippetsPage}
-                  total={snippetsTotal}
-                  perPage={snippetsLimit}
-                  onChange={setSnippetsPage}
-                />
-              </>
-            ) : collectionsLoading ? (
-              <div className="snippet-grid">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="skeleton-card">
-                    <div className="skeleton-card-header">
-                      <div className="skeleton skeleton-badge" />
-                      <div className="skeleton skeleton-title" />
-                    </div>
-                    <div className="skeleton skeleton-code" />
-                    <div className="skeleton-card-footer">
-                      <div className="skeleton skeleton-tag" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : collectionsError ? (
-              <div className="error-state">
-                <p className="error-state-icon">!</p>
-                <p className="error-state-title">Failed to load collections</p>
-                <p className="error-state-detail">{collectionsError}</p>
-                <button className="snippet-btn snippet-btn--primary" onClick={() => window.location.reload()}>
-                  Retry
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="collection-grid">
-                  {collections.map(col => (
-                    <CollectionCard
-                      key={col.id}
-                      collection={col}
-                      currentUser={auth.user}
-                      onDelete={handleDeleteCollection}
-                      onEdit={handleEditCollection}
-                      onToggleVisibility={handleToggleCollectionVisibility}
-                    />
-                  ))}
-                </div>
-                <Pagination
-                  page={collectionsPage}
-                  total={collectionsTotal}
-                  perPage={collectionsLimit}
-                  onChange={setCollectionsPage}
-                />
-              </>
-            )}
-          </>
-        } />
+        {/* Detail and profile pages */}
         <Route path="/collections/:id" element={
           <CollectionPage
             currentUser={auth.user}
             token={auth.token || undefined}
-            onCollectionChanged={refreshCollections}
+            onCollectionChanged={() => {}}
           />
         } />
         <Route path="/users/:username" element={<ProfilePage />} />
+
+        {/* Admin panel — redirects non-admins to snippets */}
         <Route path="/admin" element={
           auth.user?.role === 'admin'
-            ? <AdminPanel token={auth.token || ''} currentUserId={auth.user.id} onBack={() => navigate('/')} />
-            : <Navigate to="/" replace />
+            ? <AdminPanel token={auth.token || ''} currentUserId={auth.user.id} onBack={() => navigate('/snippets')} />
+            : <Navigate to="/snippets" replace />
         } />
       </Routes>
 
-      {showCreate && (
-        <CreateSnippetModal
-          token={auth.token || ''}
-          onClose={() => setShowCreate(false)}
-          onCreate={snippet => { addSnippet(snippet); setShowCreate(false); }}
-        />
-      )}
-
-      {showCreateCollection && (
-        <CreateCollectionModal
-          token={auth.token || ''}
-          onClose={() => setShowCreateCollection(false)}
-          onCreate={col => { addCollection(col); setShowCreateCollection(false); }}
-        />
-      )}
-
+      {/* ── Site-wide modals (auth state, not page state) ────── */}
       {showAuth && (
         <AuthModal
           onLogin={auth.login}
@@ -364,6 +185,7 @@ export default function App() {
           onClose={() => setShowSettings(false)}
         />
       )}
+
     </div>
   );
 }
