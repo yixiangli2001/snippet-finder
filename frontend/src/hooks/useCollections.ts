@@ -1,27 +1,44 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { API } from '../constants';
 import { authHeaders } from '../utils/auth';
 import { type Collection } from '../types/collection';
+
+const LIMIT = 20;
 
 export function useCollections(token: string | null) {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const prevToken = useRef(token);
+
+  // Reset to page 1 when the user logs in or out
+  useEffect(() => {
+    if (prevToken.current !== token) {
+      prevToken.current = token;
+      setPage(1);
+    }
+  }, [token]);
 
   const refreshCollections = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/collections/`, { headers: authHeaders(token) });
+      const skip = (page - 1) * LIMIT;
+      const res = await fetch(`${API}/collections/?skip=${skip}&limit=${LIMIT}`, {
+        headers: authHeaders(token),
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: Collection[] = await res.json();
-      setCollections(data);
+      const data: { items: Collection[]; total: number } = await res.json();
+      setCollections(data.items);
+      setTotal(data.total);
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, page]);
 
   useEffect(() => {
     refreshCollections();
@@ -29,10 +46,12 @@ export function useCollections(token: string | null) {
 
   function addCollection(col: Collection) {
     setCollections(prev => [col, ...prev]);
+    setTotal(prev => prev + 1);
   }
 
   async function handleDelete(id: string) {
     setCollections(prev => prev.filter(c => c.id !== id));
+    setTotal(prev => prev - 1);
     try {
       const res = await fetch(`${API}/collections/${id}`, {
         method: 'DELETE',
@@ -40,7 +59,6 @@ export function useCollections(token: string | null) {
       });
       if (!res.ok) throw new Error('Delete failed');
     } catch {
-      // Re-fetch to restore state if delete failed
       await refreshCollections();
     }
   }
@@ -76,13 +94,8 @@ export function useCollections(token: string | null) {
   }
 
   return {
-    collections,
-    loading,
-    error,
-    refreshCollections,
-    addCollection,
-    handleDelete,
-    handleEdit,
-    handleToggleVisibility,
+    collections, loading, error,
+    page, total, limit: LIMIT, setPage,
+    refreshCollections, addCollection, handleDelete, handleEdit, handleToggleVisibility,
   };
 }

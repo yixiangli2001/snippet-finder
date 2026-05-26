@@ -6,6 +6,7 @@ import { AuthModal } from './components/AuthModal';
 import CollectionCard from './components/CollectionCard';
 import CollectionPage from './components/CollectionPage';
 import CreateCollectionModal from './components/CreateCollectionModal';
+import Pagination from './components/Pagination';
 import { SettingsModal } from './components/SettingsModal';
 import CodeSnippet from './components/CodeSnippet';
 import CreateSnippetModal from './components/CreateSnippetModal';
@@ -25,6 +26,10 @@ export default function App() {
     snippets,
     loading,
     error,
+    page: snippetsPage,
+    total: snippetsTotal,
+    limit: snippetsLimit,
+    setPage: setSnippetsPage,
     addSnippet,
     handleCopy,
     handleDelete,
@@ -35,6 +40,10 @@ export default function App() {
     collections,
     loading: collectionsLoading,
     error: collectionsError,
+    page: collectionsPage,
+    total: collectionsTotal,
+    limit: collectionsLimit,
+    setPage: setCollectionsPage,
     refreshCollections,
     addCollection,
     handleDelete: handleDeleteCollection,
@@ -221,22 +230,30 @@ export default function App() {
             </div>
 
             {homeView === 'snippets' ? (
-              <div className="snippet-grid">
-                {snippets.map(snippet => (
-                  <CodeSnippet
-                    key={snippet.id}
-                    snippet={snippet}
-                    token={auth.token || undefined}
-                    currentUserId={auth.user?.id || null}
-                    canEdit={Boolean(auth.user && (snippet.owner_id === auth.user.id || auth.user.role === 'admin'))}
-                    onCopy={handleCopy}
-                    onDelete={handleDelete}
-                    onEdit={handleEdit}
-                    onToggleVisibility={handleToggleVisibility}
-                    onCollectionChanged={refreshCollections}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="snippet-grid">
+                  {snippets.map(snippet => (
+                    <CodeSnippet
+                      key={snippet.id}
+                      snippet={snippet}
+                      token={auth.token || undefined}
+                      currentUserId={auth.user?.id || null}
+                      canEdit={Boolean(auth.user && (snippet.owner_id === auth.user.id || auth.user.role === 'admin'))}
+                      onCopy={handleCopy}
+                      onDelete={handleDelete}
+                      onEdit={handleEdit}
+                      onToggleVisibility={handleToggleVisibility}
+                      onCollectionChanged={refreshCollections}
+                    />
+                  ))}
+                </div>
+                <Pagination
+                  page={snippetsPage}
+                  total={snippetsTotal}
+                  perPage={snippetsLimit}
+                  onChange={setSnippetsPage}
+                />
+              </>
             ) : collectionsLoading ? (
               <div className="snippet-grid">
                 {Array.from({ length: 6 }).map((_, i) => (
@@ -262,18 +279,26 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="collection-grid">
-                {collections.map(col => (
-                  <CollectionCard
-                    key={col.id}
-                    collection={col}
-                    currentUser={auth.user}
-                    onDelete={handleDeleteCollection}
-                    onEdit={handleEditCollection}
-                    onToggleVisibility={handleToggleCollectionVisibility}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="collection-grid">
+                  {collections.map(col => (
+                    <CollectionCard
+                      key={col.id}
+                      collection={col}
+                      currentUser={auth.user}
+                      onDelete={handleDeleteCollection}
+                      onEdit={handleEditCollection}
+                      onToggleVisibility={handleToggleCollectionVisibility}
+                    />
+                  ))}
+                </div>
+                <Pagination
+                  page={collectionsPage}
+                  total={collectionsTotal}
+                  perPage={collectionsLimit}
+                  onChange={setCollectionsPage}
+                />
+              </>
             )}
           </>
         } />

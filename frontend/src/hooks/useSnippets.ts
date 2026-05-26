@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { API } from '../constants';
 import { type Snippet } from '../components/CodeSnippet';
 import { authHeaders } from '../utils/auth';
 
+const LIMIT = 20;
+
+// Checks if the current snippet values match the optimistic values for all fields being updated. 
 function valuesMatch(current: Snippet, optimistic: Snippet, updated: Partial<Snippet>) {
   return Object.keys(updated).every((key) => {
     const field = key as keyof Snippet;
@@ -22,26 +25,41 @@ export function useSnippets(token: string | null) {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const prevToken = useRef(token);
+
+  // Reset to page 1 when the user logs in or out
+  useEffect(() => {
+    if (prevToken.current !== token) {
+      prevToken.current = token;
+      setPage(1);
+    }
+  }, [token]);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch(`${API}/snippets`, { headers: authHeaders(token) })
+    const skip = (page - 1) * LIMIT;
+    fetch(`${API}/snippets?skip=${skip}&limit=${LIMIT}`, { headers: authHeaders(token) })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data: Snippet[]) => setSnippets(data))
+      .then((data: { items: Snippet[]; total: number }) => {
+        setSnippets(data.items);
+        setTotal(data.total);
+      })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, page]);
 
   function addSnippet(snippet: Snippet) {
     setSnippets((prev) => [snippet, ...prev]);
+    setTotal((prev) => prev + 1);
   }
 
   function handleCopy(id: string) {
-    // Fire-and-forget is acceptable for copy count — not critical data
     fetch(`${API}/snippets/${id}/copy`, { method: 'PATCH' }).catch(() => {});
     setSnippets((prev) =>
       prev.map((s) => (s.id === id ? { ...s, times_copied: s.times_copied + 1 } : s))
@@ -54,6 +72,7 @@ export function useSnippets(token: string | null) {
     const removedSnippet = snippets[removedIndex];
 
     setSnippets((prev) => prev.filter((s) => s.id !== id));
+    setTotal((prev) => prev - 1);
 
     try {
       const res = await fetch(`${API}/snippets/${id}`, {
@@ -68,6 +87,7 @@ export function useSnippets(token: string | null) {
         next.splice(Math.min(removedIndex, next.length), 0, removedSnippet);
         return next;
       });
+      setTotal((prev) => prev + 1);
       alert((err as Error).message);
     }
   }
@@ -118,5 +138,9 @@ export function useSnippets(token: string | null) {
     }
   }
 
-  return { snippets, loading, error, addSnippet, handleCopy, handleDelete, handleEdit, handleToggleVisibility };
+  return {
+    snippets, loading, error,
+    page, total, limit: LIMIT, setPage,
+    addSnippet, handleCopy, handleDelete, handleEdit, handleToggleVisibility,
+  };
 }
