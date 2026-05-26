@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './CollectionPage.css';
 import './ProfilePage.css';
+import { useAuth } from '../hooks/useAuth';
+import { authHeaders } from '../utils/auth';
 import { API } from '../constants';
 import { type Snippet } from './CodeSnippet';
 import { type Collection } from '../types/collection';
@@ -11,7 +13,10 @@ import CollectionCard from './CollectionCard';
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
+  const { user, token } = useAuth();
+
   const [resolvedUsername, setResolvedUsername] = useState('');
+  const [profileOwnerId, setProfileOwnerId] = useState('');
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,14 +35,15 @@ export default function ProfilePage() {
         const userRes = await fetch(`${API}/users/${encodeURIComponent(username)}`);
         if (userRes.status === 404) { setNotFound(true); return; }
         if (!userRes.ok) throw new Error(`HTTP ${userRes.status}`);
-        const user: { id: string; username: string } = await userRes.json();
-        setResolvedUsername(user.username);
+        const owner: { id: string; username: string } = await userRes.json();
+        setResolvedUsername(owner.username);
+        setProfileOwnerId(owner.id);
 
-        // Fetch public snippets and collections in parallel
-        // Note: trailing slash on /snippets/ avoids a 307 redirect
+        // Pass auth token so the backend shows private content to the owner or admin
+        const headers = authHeaders(token);
         const [snippetsRes, collectionsRes] = await Promise.all([
-          fetch(`${API}/snippets/?owner_id=${user.id}&limit=100`),
-          fetch(`${API}/collections/?owner_id=${user.id}&limit=100`),
+          fetch(`${API}/snippets/?owner_id=${owner.id}&limit=100`, { headers }),
+          fetch(`${API}/collections/?owner_id=${owner.id}&limit=100`, { headers }),
         ]);
         if (!snippetsRes.ok) throw new Error(`HTTP ${snippetsRes.status}`);
         if (!collectionsRes.ok) throw new Error(`HTTP ${collectionsRes.status}`);
@@ -54,7 +60,72 @@ export default function ProfilePage() {
     }
 
     fetchProfile();
-  }, [username]);
+  }, [username, token]);
+
+  // Owner or admin can perform CRUD actions on this profile's content
+  const canEdit = Boolean(user && (user.id === profileOwnerId || user.role === 'admin'));
+
+  // ── Snippet handlers ───────────────────────────────────────
+  function handleCopy(id: string) {
+    fetch(`${API}/snippets/${id}/copy`, { method: 'PATCH' }).catch(() => {});
+    setSnippets(prev => prev.map(s => s.id === id ? { ...s, times_copied: s.times_copied + 1 } : s));
+  }
+
+  async function handleDeleteSnippet(id: string) {
+    setSnippets(prev => prev.filter(s => s.id !== id));
+    await fetch(`${API}/snippets/${id}`, { method: 'DELETE', headers: authHeaders(token) });
+  }
+
+  async function handleEditSnippet(id: string, updates: Partial<Snippet>) {
+    const res = await fetch(`${API}/snippets/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) throw new Error('Update failed');
+    const updated: Snippet = await res.json();
+    setSnippets(prev => prev.map(s => s.id === id ? updated : s));
+  }
+
+  async function handleToggleSnippetVisibility(id: string) {
+    const res = await fetch(`${API}/snippets/${id}/visibility`, {
+      method: 'PATCH',
+      headers: authHeaders(token),
+    });
+    if (!res.ok) throw new Error('Visibility update failed');
+    const updated: Snippet = await res.json();
+    setSnippets(prev => prev.map(s => s.id === id ? updated : s));
+  }
+
+  // ── Collection handlers ────────────────────────────────────
+  async function handleDeleteCollection(id: string) {
+    setCollections(prev => prev.filter(c => c.id !== id));
+    await fetch(`${API}/collections/${id}`, { method: 'DELETE', headers: authHeaders(token) });
+  }
+
+  async function handleEditCollection(id: string, updates: { name?: string; description?: string | null }) {
+    const res = await fetch(`${API}/collections/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) throw new Error('Update failed');
+    const updated: Collection = await res.json();
+    setCollections(prev => prev.map(c => c.id === id ? updated : c));
+  }
+
+  async function handleToggleCollectionVisibility(id: string) {
+    const col = collections.find(c => c.id === id);
+    if (!col) return;
+    const res = await fetch(`${API}/collections/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify({ is_public: !col.is_public }),
+    });
+    if (!res.ok) throw new Error('Visibility update failed');
+    const updated: Collection = await res.json();
+    setCollections(prev => prev.map(c => c.id === id ? updated : c));
+  }
 
   if (loading) {
     return (
@@ -121,15 +192,21 @@ export default function ProfilePage() {
       <section className="profile-section">
         <h2 className="profile-section-title">Snippets</h2>
         {snippets.length === 0 ? (
-          <p className="profile-empty">No public snippets yet.</p>
+          <p className="profile-empty">No snippets yet.</p>
         ) : (
           <div className="snippet-grid">
             {snippets.map(snippet => (
               <CodeSnippet
                 key={snippet.id}
                 snippet={snippet}
-                canEdit={false}
-                onCopy={() => {}}
+                token={token || undefined}
+                currentUserId={user?.id || null}
+                canEdit={canEdit}
+                onCopy={handleCopy}
+                onDelete={handleDeleteSnippet}
+                onEdit={handleEditSnippet}
+                onToggleVisibility={handleToggleSnippetVisibility}
+                onCollectionChanged={() => {}}
               />
             ))}
           </div>
@@ -139,17 +216,17 @@ export default function ProfilePage() {
       <section className="profile-section">
         <h2 className="profile-section-title">Collections</h2>
         {collections.length === 0 ? (
-          <p className="profile-empty">No public collections yet.</p>
+          <p className="profile-empty">No collections yet.</p>
         ) : (
           <div className="collection-grid">
             {collections.map(col => (
               <CollectionCard
                 key={col.id}
                 collection={col}
-                currentUser={null}
-                onDelete={() => {}}
-                onEdit={async () => {}}
-                onToggleVisibility={() => {}}
+                currentUser={canEdit ? user : null}
+                onDelete={handleDeleteCollection}
+                onEdit={handleEditCollection}
+                onToggleVisibility={handleToggleCollectionVisibility}
               />
             ))}
           </div>
