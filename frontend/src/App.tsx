@@ -5,6 +5,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import CollectionCard from './components/CollectionCard';
 import CollectionPage from './components/CollectionPage';
+import ProfilePage from './components/ProfilePage';
 import CreateCollectionModal from './components/CreateCollectionModal';
 import LanguageFilter from './components/LanguageFilter';
 import Pagination from './components/Pagination';
@@ -322,6 +323,7 @@ export default function App() {
             onCollectionChanged={refreshCollections}
           />
         } />
+        <Route path="/users/:username" element={<ProfilePage />} />
         <Route path="/admin" element={
           auth.user?.role === 'admin'
             ? <AdminPanel token={auth.token || ''} currentUserId={auth.user.id} onBack={() => navigate('/')} />
