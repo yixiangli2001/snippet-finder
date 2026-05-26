@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import './CollectionCard.css';
 import { type Collection } from '../types/collection';
 import { type User } from '../utils/auth';
 import { displayOwner } from '../utils/author';

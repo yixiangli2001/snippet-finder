@@ -1,0 +1,108 @@
+/* ── Collection page ─────────────────────────────────────── */
+/* Note: .collection-page-header and .collection-page-back are also
+   used by ProfilePage — import this file from both components. */
+
+.collection-page-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.collection-page-header {
+  padding: 32px 24px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: relative;
+
+  @media (max-width: 768px) {
+    padding: 48px 16px 20px;
+  }
+}
+
+.collection-page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 8px;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.collection-page-desc {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0 0 16px;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+.collection-page-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.collection-page-owner {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.collection-page-owner--link {
+  text-decoration: none;
+  color: var(--text);
+  transition: color 0.15s;
+}
+
+.collection-page-owner--link:hover {
+  color: var(--accent);
+}
+
+.collection-page-back {
+  position: absolute;
+  top: 12px;
+  left: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+
+  @media (max-width: 768px) {
+    left: 12px;
+  }
+}
+
+.collection-page-back:hover {
+  color: var(--text-h);
+  background: var(--bg-subtle);
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  gap: 8px;
+  flex: 1;
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.empty-state-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+}

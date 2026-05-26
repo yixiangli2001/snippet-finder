@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import './CollectionPage.css';
+import './ProfilePage.css';
 import { API } from '../constants';
 import { type Snippet } from './CodeSnippet';
 import { type Collection } from '../types/collection';

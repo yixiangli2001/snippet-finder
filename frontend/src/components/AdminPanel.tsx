@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './AdminPanel.css';
 import { type User } from '../utils/auth';
 import { useAdmin } from '../hooks/useAdmin';
 

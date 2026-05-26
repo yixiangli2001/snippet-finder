@@ -1,3 +1,5 @@
+import './LanguageFilter.css';
+
 interface Props {
   languages: string[];
   value: string;

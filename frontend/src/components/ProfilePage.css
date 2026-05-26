@@ -1,0 +1,42 @@
+/* ── Profile page ────────────────────────────────────────── */
+/* Note: shared layout classes (.collection-page-header, .collection-page-back)
+   live in CollectionPage.css — import that file here too. */
+
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.profile-username {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.profile-section {
+  padding: 0 0 8px;
+}
+
+.profile-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 16px 24px 8px;
+  margin: 0;
+
+  @media (max-width: 768px) {
+    padding: 12px 16px 6px;
+  }
+}
+
+.profile-empty {
+  font-size: 13px;
+  color: var(--text);
+  padding: 8px 24px 16px;
+  margin: 0;
+}

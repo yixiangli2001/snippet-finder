@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import './CollectionPage.css';
 import { API } from '../constants';
 import { authHeaders, type User } from '../utils/auth';
 import { Link } from 'react-router-dom';
