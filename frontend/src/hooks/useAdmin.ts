@@ -23,6 +23,20 @@ export function useAdmin(token: string | null) {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
+  async function updateUser(userId: string, updates: { username?: string; email?: string }) {
+    const res = await fetch(`${API}/admin/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.detail || `HTTP ${res.status}`);
+    }
+    const updated: User = await res.json();
+    setUsers(prev => prev.map(u => u.id === userId ? updated : u));
+  }
+
   async function deleteUser(userId: string) {
     const res = await fetch(`${API}/admin/users/${userId}`, {
       method: 'DELETE',
@@ -32,5 +46,5 @@ export function useAdmin(token: string | null) {
     setUsers(prev => prev.filter(u => u.id !== userId));
   }
 
-  return { users, loading, error, deleteUser };
+  return { users, loading, error, updateUser, deleteUser };
 }
