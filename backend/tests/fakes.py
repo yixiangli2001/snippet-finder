@@ -1,3 +1,4 @@
+import re
 from copy import deepcopy
 
 from bson import ObjectId
@@ -51,7 +52,8 @@ class FakeCollection:
                     if exists != expected["$exists"]:
                         return False
                 elif "$regex" in expected:
-                    if expected["$regex"].lower() not in str(actual or "").lower():
+                    flags = re.IGNORECASE if "i" in expected.get("$options", "") else 0
+                    if not re.search(expected["$regex"], str(actual or ""), flags):
                         return False
                 elif "$in" in expected:
                     if actual not in expected["$in"]:

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 
 from bson import ObjectId
@@ -21,7 +22,9 @@ async def update_username(
     update: UpdateUsername,
     current_user: UserInDB = Depends(get_current_user),
 ):
-    existing = await users_collection.find_one({"username": update.username})
+    existing = await users_collection.find_one(
+        {"username": {"$regex": f"^{re.escape(update.username)}$", "$options": "i"}}
+    )
     if existing and str(existing["_id"]) != current_user.id:
         raise HTTPException(status_code=409, detail="Username already exists")
 
@@ -78,7 +81,9 @@ async def update_email(
 @router.get("/{username}", response_model=PublicUserResponse)
 async def get_user_profile(username: str):
     """Return the public profile for a user. No auth required."""
-    user = await users_collection.find_one({"username": username})
+    user = await users_collection.find_one(
+        {"username": {"$regex": f"^{re.escape(username)}$", "$options": "i"}}
+    )
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return {"id": str(user["_id"]), "username": user["username"]}

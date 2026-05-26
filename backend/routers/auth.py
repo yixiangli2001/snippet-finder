@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
@@ -26,7 +27,7 @@ async def register(user: UserCreate):
     existing = await users_collection.find_one({
         "$or": [
             {"email": user.email},
-            {"username": user.username},
+            {"username": {"$regex": f"^{re.escape(user.username)}$", "$options": "i"}},
         ]
     })
     if existing:
