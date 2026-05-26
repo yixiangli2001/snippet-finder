@@ -55,3 +55,9 @@ class CollectionResponse(BaseModel):
     is_public: bool
     created_at: datetime
     updated_at: datetime
+
+
+class CollectionListResponse(BaseModel):
+    """API response model for a list of collections."""
+    items: list[CollectionResponse]
+    total: int

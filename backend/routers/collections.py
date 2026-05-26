@@ -4,7 +4,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 
 from database import collections_collection, snippets_collection
-from models.collection import AddSnippet, CollectionCreate, CollectionResponse, CollectionUpdate
+from models.collection import AddSnippet, CollectionCreate, CollectionListResponse, CollectionResponse, CollectionUpdate
 from models.user import UserInDB
 from utils.security import get_current_user, get_optional_user
 from utils.user_lookup import build_username_map, get_owner_username
@@ -56,9 +56,11 @@ async def contains_private_snippets(col: dict) -> bool:
     return len(private_snippets) > 0
 
 
-@router.get("/", response_model=list[CollectionResponse])
+@router.get("/", response_model=CollectionListResponse)
 async def get_collections(
     owner_id: str | None = None,
+    skip: int = 0,
+    limit: int = 20,
     current_user: UserInDB | None = Depends(get_optional_user),
 ):
     """Return public collections, plus the user's own private ones if logged in."""
@@ -69,12 +71,16 @@ async def get_collections(
         # Admins see everything, including private collections of any user.
         query = {}
     elif current_user:
+        # Logged in users see all public collections, plus their own private ones.
         query = {"$or": [{"is_public": True}, {"owner_id": ObjectId(current_user.id)}]}
     else:
+        # Not logged in: show only public collections.
         query = {"is_public": True}
-    cols = await collections_collection.find(query).sort("created_at", -1).to_list(100)
+    total = await collections_collection.count_documents(query)
+    cols = await collections_collection.find(query).sort("created_at", -1).skip(skip).to_list(limit)
     username_map = await build_username_map(cols)
-    return [format_collection(c, username_map.get(c.get("owner_id"))) for c in cols]
+    items = [format_collection(c, username_map.get(c.get("owner_id"))) for c in cols]
+    return {"items": items, "total": total}
 
 
 @router.post("/", response_model=CollectionResponse)

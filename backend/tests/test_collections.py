@@ -49,7 +49,7 @@ def test_unauthenticated_user_sees_only_public_collections(monkeypatch):
     response = client.get("/collections/")
 
     assert response.status_code == 200
-    names = [c["name"] for c in response.json()]
+    names = [c["name"] for c in response.json()["items"]]
     assert names == ["Public"]
 
 
@@ -68,7 +68,7 @@ def test_authenticated_user_sees_own_private_collections(monkeypatch):
 
     response = client.get("/collections/", headers={"Authorization": f"Bearer {token}"})
 
-    names = [c["name"] for c in response.json()]
+    names = [c["name"] for c in response.json()["items"]]
     assert "My private" in names
     assert "Their private" not in names
 
@@ -98,7 +98,7 @@ def test_admin_sees_all_private_collections(monkeypatch):
     token = create_token(str(admin_id), "admin")
     response = client.get("/collections/", headers={"Authorization": f"Bearer {token}"})
 
-    names = {c["name"] for c in response.json()}
+    names = {c["name"] for c in response.json()["items"]}
     assert names == {"Their private", "Their public"}
 
 
@@ -347,7 +347,7 @@ def test_owner_id_filter_returns_only_public_collections_of_that_user(monkeypatc
 
     response = client.get(f"/collections/?owner_id={user_id}")
 
-    names = [c["name"] for c in response.json()]
+    names = [c["name"] for c in response.json()["items"]]
     assert names == ["My public"]
 
 
@@ -521,3 +521,20 @@ def test_non_owner_cannot_remove_snippet_from_collection(monkeypatch):
     )
 
     assert response.status_code == 403
+
+
+def test_collections_pagination_returns_page_and_total(monkeypatch):
+    owner_id = ObjectId()
+    public_cols = [
+        {"_id": ObjectId(), "owner_id": owner_id, "name": f"Col {i}", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"}
+        for i in range(5)
+    ]
+    _, col_collection, _, client = setup(monkeypatch, public_cols)
+
+    response = client.get("/collections/?skip=0&limit=2")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 5
+    assert len(body["items"]) == 2

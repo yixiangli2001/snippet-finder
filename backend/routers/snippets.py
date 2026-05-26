@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 import re
 
 from database import collections_collection, snippets_collection
-from models.snippet import SnippetCreate, SnippetUpdate, SnippetResponse
+from models.snippet import SnippetCreate, SnippetUpdate, SnippetResponse, SnippetListResponse
 from models.user import UserInDB
 from utils.security import get_current_user, get_optional_user
 from utils.user_lookup import build_username_map, get_owner_username
@@ -54,11 +54,13 @@ async def get_snippet_for_change(snippet_id: str, user: UserInDB) -> dict:
     return snippet
 
 
-@router.get("/", response_model=list[SnippetResponse])
+@router.get("/", response_model=SnippetListResponse)
 async def get_snippets(
     search: str | None = None,
     language: str | None = None,
     owner_id: str | None = None,
+    skip: int = 0,
+    limit: int = 20,
     current_user: UserInDB | None = Depends(get_optional_user),
 ):
     filters = []
@@ -69,6 +71,7 @@ async def get_snippets(
         # Admins see everything, no visibility filter applied.
         pass
     elif current_user:
+        # Logged in users see all public snippets, plus their own private ones.
         filters.append({
             "$or": [
                 {"is_public": True},
@@ -77,6 +80,7 @@ async def get_snippets(
             ]
         })
     else:
+        # Not logged in: show only public snippets.
         filters.append({
             "$or": [
                 {"is_public": True},
@@ -101,9 +105,11 @@ async def get_snippets(
         query = filters[0]
     else:
         query = {"$and": filters}
-    snippets = await snippets_collection.find(query).sort("created_at", -1).to_list(100)
+    total = await snippets_collection.count_documents(query)
+    snippets = await snippets_collection.find(query).sort("created_at", -1).skip(skip).to_list(limit)
     username_map = await build_username_map(snippets)
-    return [format_snippet(s, username_map.get(s.get("owner_id"))) for s in snippets]
+    items = [format_snippet(s, username_map.get(s.get("owner_id"))) for s in snippets]
+    return {"items": items, "total": total}
 
 
 @router.get("/{snippet_id}", response_model=SnippetResponse)

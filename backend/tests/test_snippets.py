@@ -73,7 +73,7 @@ def test_logged_out_users_see_public_and_legacy_snippets(monkeypatch):
     response = client.get("/snippets/")
 
     assert response.status_code == 200
-    titles = {item["title"] for item in response.json()}
+    titles = {item["title"] for item in response.json()["items"]}
     assert titles == {"public", "legacy"}
 
 
@@ -88,7 +88,7 @@ def test_logged_in_user_sees_own_private_snippets(monkeypatch):
     response = client.get("/snippets/", headers=auth_header(alice))
 
     assert response.status_code == 200
-    assert [item["title"] for item in response.json()] == ["own private"]
+    assert [item["title"] for item in response.json()["items"]] == ["own private"]
 
 
 def test_admin_sees_all_private_snippets(monkeypatch):
@@ -104,7 +104,7 @@ def test_admin_sees_all_private_snippets(monkeypatch):
     response = client.get("/snippets/", headers=auth_header(admin))
 
     assert response.status_code == 200
-    titles = {item["title"] for item in response.json()}
+    titles = {item["title"] for item in response.json()["items"]}
     assert titles == {"alice private", "bob private", "public"}
 
 
@@ -246,7 +246,7 @@ def test_owner_id_filter_returns_only_public_snippets_of_that_user(monkeypatch):
     response = client.get(f"/snippets/?owner_id={alice['_id']}")
 
     assert response.status_code == 200
-    titles = [s["title"] for s in response.json()]
+    titles = [s["title"] for s in response.json()["items"]]
     assert titles == ["alice public"]
 
 
@@ -273,3 +273,22 @@ def test_owner_can_toggle_visibility(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["is_public"] is True
+
+
+def test_snippets_pagination_returns_page_and_total(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    public_snippets = [snippet(f"s{i}", owner_id=alice["_id"], is_public=True) for i in range(7)]
+    use_fake_data(monkeypatch, public_snippets, [alice, make_user("bob@example.com", "bob")])
+    client = TestClient(app)
+
+    response = client.get("/snippets/?skip=0&limit=3")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 7
+    assert len(body["items"]) == 3
+
+    response2 = client.get("/snippets/?skip=3&limit=3")
+    body2 = response2.json()
+    assert body2["total"] == 7
+    assert len(body2["items"]) == 3

@@ -138,6 +138,10 @@ class FakeCollection:
         return DeleteResult(deleted_count)
 
 
+    async def count_documents(self, query):
+        return sum(1 for doc in self.documents if self._matches(doc, query))
+
+
 class FakeCursor:
     def __init__(self, documents):
         self.documents = documents
@@ -145,6 +149,10 @@ class FakeCursor:
     def sort(self, field_name, direction):
         reverse = direction < 0
         self.documents.sort(key=lambda document: document.get(field_name), reverse=reverse)
+        return self
+
+    def skip(self, n):
+        self.documents = self.documents[n:]
         return self
 
     async def to_list(self, limit):
