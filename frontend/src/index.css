@@ -6,30 +6,49 @@
 */
 
 :root {
-  /* ── Semantic tokens (light) ────────────────────────────── */
-  --text:          #64748b;  /* slate-500  — body copy             */
-  --text-h:        #0f172a;  /* slate-900  — headings / strong     */
-  --bg:            #ffffff;  /* white      — page surface          */
-  --bg-subtle:     #f8fafc;  /* slate-50   — secondary surface     */
-  --border:        #e2e8f0;  /* slate-200  — dividers              */
-  --code-bg:       #f1f5f9;  /* slate-100  — code blocks           */
-  --accent:        #2563eb;  /* blue-600   — primary actions       */
-  --accent-bg:     rgba(37, 99, 235, 0.07);
-  --accent-border: rgba(37, 99, 235, 0.30);
-  --accent-hover:  #1d4ed8;  /* blue-700   — button hover          */
-  --social-bg:     #f1f5f9;  /* slate-100  — tag / chip bg         */
-  --danger:        #dc2626;  /* red-600    — destructive actions    */
+  /* ── Expressive Base (OKLCH) ────────────────────────────── */
+  /* Tinting our neutrals with a hint of the brand blue      */
+  --text:          oklch(45% 0.02 260); 
+  --text-h:        oklch(20% 0.04 260); 
+  --bg:            oklch(100% 0.005 260);
+  --bg-subtle:     oklch(97% 0.015 260); /* Soft lavender-blue tint */
+  --border:        oklch(90% 0.03 260);
+  --code-bg:       oklch(95% 0.02 260);
+  --accent:        oklch(60% 0.16 260);
+  --accent-bg:     oklch(from var(--accent) l c h / 0.07);
+  --accent-border: oklch(from var(--accent) l c h / 0.30);
+  --accent-hover:  oklch(55% 0.18 260);
+  --social-bg:     oklch(94% 0.03 260);
+  --danger:        oklch(60% 0.18 25);
+  --radius:        14px;
+  --radius-sm:     10px;
   --shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.04);
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 2px 4px rgba(0, 0, 0, 0.02);
   --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.07),
-    0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -2px rgba(0, 0, 0, 0.04);
   --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.08),
-    0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    0 12px 24px -8px rgba(0, 0, 0, 0.12),
+    0 4px 8px -4px rgba(0, 0, 0, 0.08);
+
+  /* ── Animation & Easing ────────────────────────────────── */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast:  150ms;
+  --duration-mid:   250ms;
+  --duration-slow:  400ms;
 
   /* ── Typography ─────────────────────────────────────────── */
+  /* ── Expressive Palette (OKLCH) ────────────────────────── */
+  /* Used for language badges and tags to add vibrancy       */
+  --color-ruby:    oklch(65% 0.19 25);
+  --color-amber:   oklch(78% 0.18 85);
+  --color-emerald: oklch(72% 0.17 150);
+  --color-sky:     oklch(75% 0.14 230);
+  --color-indigo:  oklch(68% 0.16 280);
+  --color-violet:  oklch(65% 0.18 310);
+
   --sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
   --heading: var(--sans);
   --mono: 'SF Mono', 'Fira Code', 'Fira Mono', ui-monospace, Consolas, monospace;
@@ -49,29 +68,37 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Dark mode — toggled via data-theme attribute ─────────── */
 [data-theme="dark"] {
-  --text:          #94a3b8;  /* slate-400  */
-  --text-h:        #f1f5f9;  /* slate-100  */
-  --bg:            #0f172a;  /* slate-900  */
-  --bg-subtle:     #1e293b;  /* slate-800  */
-  --border:        #334155;  /* slate-700  */
-  --code-bg:       #1e293b;  /* slate-800  */
-  --accent:        #60a5fa;  /* blue-400   */
-  --accent-bg:     rgba(96, 165, 250, 0.10);
-  --accent-border: rgba(96, 165, 250, 0.30);
-  --accent-hover:  #93bbfd;  /* blue-300   */
-  --social-bg:     #1e293b;  /* slate-800  */
-  --danger:        #f87171;  /* red-400    */
+  --text:          oklch(75% 0.015 250); /* slate-400 tint */
+  --text-h:        oklch(95% 0.01 250);  /* slate-100 tint */
+  --bg:            oklch(18% 0.02 250);  /* slate-900 tint */
+  --bg-subtle:     oklch(22% 0.02 250);  /* slate-800 tint */
+  --border:        oklch(32% 0.02 250);  /* slate-700 tint */
+  --code-bg:       oklch(14% 0.02 250);  /* deeper code blocks */
+  --accent:        oklch(75% 0.12 250);  /* blue-400 */
+  --accent-bg:     oklch(from var(--accent) l c h / 0.12);
+  --accent-border: oklch(from var(--accent) l c h / 0.35);
+  --accent-hover:  oklch(80% 0.14 255);
+  --social-bg:     oklch(25% 0.02 250);
+  --danger:        oklch(70% 0.18 25);
   --shadow:
-    0 1px 3px rgba(0, 0, 0, 0.25),
-    0 1px 2px rgba(0, 0, 0, 0.15);
+    0 1px 3px rgba(0, 0, 0, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.30),
-    0 2px 4px -2px rgba(0, 0, 0, 0.20);
+    0 4px 6px -1px rgba(0, 0, 0, 0.50),
+    0 2px 4px -2px rgba(0, 0, 0, 0.40);
   --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.35),
-    0 4px 6px -4px rgba(0, 0, 0, 0.20);
+    0 20px 40px -12px rgba(0, 0, 0, 0.65),
+    0 8px 16px -8px rgba(0, 0, 0, 0.50);
   color-scheme: dark;
 }
 
