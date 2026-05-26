@@ -5,7 +5,7 @@ import './ProfilePage.css';
 import { useAuth } from '../hooks/useAuth';
 import { authHeaders } from '../utils/auth';
 import { API } from '../constants';
-import { type Snippet } from './CodeSnippet';
+import { type Snippet } from '../types/snippet';
 import { type Collection } from '../types/collection';
 import CodeSnippet from './CodeSnippet';
 import CollectionCard from './CollectionCard';
@@ -32,7 +32,7 @@ export default function ProfilePage() {
       setError(null);
       try {
         // Resolve username → id (case-insensitive on the backend)
-        const userRes = await fetch(`${API}/users/${encodeURIComponent(username)}`);
+        const userRes = await fetch(`${API}/users/${encodeURIComponent(username!)}`);
         if (userRes.status === 404) { setNotFound(true); return; }
         if (!userRes.ok) throw new Error(`HTTP ${userRes.status}`);
         const owner: { id: string; username: string } = await userRes.json();

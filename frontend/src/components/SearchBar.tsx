@@ -50,7 +50,7 @@ export default function SearchBar({
               onMouseDown={(e) => { e.preventDefault(); copyResult(s); }}
             >
               <div className="search-result-header">
-                <span className="search-result-lang">{s.language}</span>
+                <span className="search-result-lang" data-lang={s.language.toLowerCase()}>{s.language}</span>
                 <span className="search-result-title">{highlight(s.title, query)}</span>
                 {s.tags.length > 0 && (
                   <span className="search-result-tags">

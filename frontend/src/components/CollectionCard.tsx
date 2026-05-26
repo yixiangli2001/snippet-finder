@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import './CollectionCard.css';
 import { type Collection } from '../types/collection';
 import { type User } from '../utils/auth';
-import { displayOwner } from '../utils/author';
 import { EditIcon, EyeIcon, EyeOffIcon, TrashIcon, CheckIcon } from './Icons';
 
 interface Props {
@@ -75,11 +74,11 @@ export default function CollectionCard({ collection, currentUser, onDelete, onEd
     <div className="collection-card" onClick={() => navigate(`/collections/${collection.id}`)}>
       <div className="collection-card-header">
         <div className="collection-card-meta">
-          <span className={`snippet-visibility${collection.is_public ? ' snippet-visibility--public' : ''}`}>
-            {collection.is_public ? 'Public' : 'Private'}
-          </span>
           <span className="collection-snippet-count">
             {snippetCount} {snippetCount === 1 ? 'snippet' : 'snippets'}
+          </span>
+          <span className={`snippet-visibility${collection.is_public ? ' snippet-visibility--public' : ''}`}>
+            {collection.is_public ? 'Public' : 'Private'}
           </span>
         </div>
         {canEdit && (
@@ -136,7 +135,7 @@ export default function CollectionCard({ collection, currentUser, onDelete, onEd
       <div className="collection-card-footer" onClick={e => e.stopPropagation()}>
         {collection.owner_username ? (
           <Link to={`/users/${collection.owner_username}`} className="collection-owner-link">
-            {collection.owner_username}
+            @{collection.owner_username}
           </Link>
         ) : (
           <span className="collection-owner-text">Anonymous</span>
