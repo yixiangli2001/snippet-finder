@@ -7,9 +7,15 @@ backend/**/__pycache__/
 # Environment variables (contains secrets — never commit this)
 backend/.env
 
-# Node
-frontend/node_modules/
-frontend/dist/
-
 # macOS
 .DS_Store
+
+# Documentation
+CONTRIBUTING.md
+SPEC.md
+.impeccable.md
+CLAUDE.md
+DESIGN.md
+PRODUCT.md
+PLAN-FRONTEND.md
+backend/import_snippets.py

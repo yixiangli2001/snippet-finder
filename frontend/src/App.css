@@ -43,6 +43,7 @@
   letter-spacing: -0.03em;
   white-space: nowrap;
   flex-shrink: 0;
+  text-decoration: none;
 }
 
 .app-logo span {
@@ -330,12 +331,15 @@
 
 /* ── Header auth controls ─────────────────────────────────── */
 .header-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
   font-family: var(--sans);
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
-  padding: 6px 14px;
+  padding: 0 14px;
   border-radius: 7px;
   border: 1px solid var(--border);
   background: var(--bg-subtle);
@@ -378,8 +382,9 @@
 .header-user-btn {
   display: flex;
   align-items: center;
+  height: 34px;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 0 10px;
   border-radius: 7px;
   border: 1px solid var(--border);
   background: var(--bg-subtle);
@@ -578,12 +583,16 @@
 
 /* ── Admin header button ─────────────────────────────────── */
 .header-admin-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  gap: 6px;
   font-family: var(--sans);
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
-  padding: 6px 14px;
+  padding: 0 12px;
   border-radius: 7px;
   border: 1px solid var(--border);
   background: var(--bg-subtle);
@@ -597,6 +606,17 @@
   border-color: var(--accent-border);
   background: var(--accent-bg);
   color: var(--accent);
+}
+
+/* Hide the text label on small screens — shield icon alone is enough */
+@media (max-width: 600px) {
+  .header-admin-btn-text {
+    display: none;
+  }
+
+  .header-admin-btn {
+    padding: 6px 8px;
+  }
 }
 
 /* ── Admin panel → AdminPanel.css (imported by AdminPanel.tsx) ── */
@@ -902,6 +922,7 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text);
+  text-decoration: none;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
