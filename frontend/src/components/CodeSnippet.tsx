@@ -1,12 +1,16 @@
 import { useState } from "react";
 
+// Curated hues — all in the blue/indigo/teal arc so every language
+// colour harmonises with the app's blue design system.
+const LANG_HUES = [220, 240, 200, 260, 185, 280, 210, 250, 175, 295];
+
 function langHue(lang: string): number {
   const s = lang.toLowerCase().trim();
   let h = 0;
   for (let i = 0; i < s.length; i++) {
     h = (h * 31 + s.charCodeAt(i)) >>> 0;
   }
-  return h % 360;
+  return LANG_HUES[h % LANG_HUES.length];
 }
 import "./CodeSnippet.css";
 import { FormField } from "./FormField";
