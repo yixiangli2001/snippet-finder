@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { API } from '../constants';
 import { authHeaders } from '../utils/auth';
 import { type Collection } from '../types/collection';
@@ -21,10 +22,10 @@ export default function AddToCollectionModal({ snippetId, token, currentUserId, 
   useEffect(() => {
     async function fetchCollections() {
       try {
-        const res = await fetch(`${API}/collections/`, { headers: authHeaders(token) });
+        const res = await fetch(`${API}/collections/?limit=100`, { headers: authHeaders(token) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const cols: Collection[] = await res.json();
-        const ownedCollections = cols.filter(col => col.owner_id === currentUserId);
+        const data: { items: Collection[] } = await res.json();
+        const ownedCollections = data.items.filter(col => col.owner_id === currentUserId);
         setCollections(ownedCollections);
         if (ownedCollections.length > 0) setSelectedId(ownedCollections[0].id);
       } catch (err) {
@@ -58,7 +59,7 @@ export default function AddToCollectionModal({ snippetId, token, currentUserId, 
     }
   }
 
-  return (
+  return createPortal(
     <div className="overlay-backdrop" onClick={onClose}>
       <div className="overlay-panel" onClick={e => e.stopPropagation()}>
         <h2 className="overlay-title">Add to Collection</h2>
@@ -101,6 +102,7 @@ export default function AddToCollectionModal({ snippetId, token, currentUserId, 
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

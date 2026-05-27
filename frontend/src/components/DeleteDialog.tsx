@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { TrashIcon } from './Icons';
 
 interface Props {
@@ -16,7 +17,7 @@ export function DeleteDialog({ title, onConfirm, onCancel }: Props) {
     return () => document.removeEventListener('keydown', handleEsc);
   }, [onCancel]);
 
-  return (
+  return createPortal(
     <div className="delete-overlay" onClick={onCancel}>
       <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="delete-dialog-icon">
@@ -35,6 +36,7 @@ export function DeleteDialog({ title, onConfirm, onCancel }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
