@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { API } from '../constants';
-import { type Snippet } from '../components/CodeSnippet';
+import { type Snippet } from '../types/snippet';
 import { authHeaders } from '../utils/auth';
 
 export function useSearch(onCopy: (id: string) => void, token: string | null) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Snippet[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -17,6 +18,9 @@ export function useSearch(onCopy: (id: string) => void, token: string | null) {
     if (!trimmedQuery) {
       return;
     }
+    // Open the dropdown immediately so the user sees feedback before results arrive
+    setLoading(true);
+    setIsOpen(true);
     const debounceTimer = setTimeout(async () => {
       try {
         const res = await fetch(`${API}/snippets/?search=${encodeURIComponent(trimmedQuery)}`, {
@@ -25,13 +29,17 @@ export function useSearch(onCopy: (id: string) => void, token: string | null) {
         if (!res.ok) return;
         const data: { items: Snippet[] } = await res.json();
         setResults(data.items);
-        setIsOpen(true);
         setSelectedIdx(-1);
       } catch {
         // silently ignore transient search errors
+      } finally {
+        setLoading(false);
       }
     }, 300);
-    return () => clearTimeout(debounceTimer);
+    return () => {
+      clearTimeout(debounceTimer);
+      setLoading(false);
+    };
   }, [query, token]);
 
   function updateQuery(nextQuery: string) {
@@ -39,6 +47,7 @@ export function useSearch(onCopy: (id: string) => void, token: string | null) {
     if (!nextQuery.trim()) {
       setResults([]);
       setIsOpen(false);
+      setLoading(false);
       setSelectedIdx(-1);
     }
   }
@@ -86,7 +95,7 @@ export function useSearch(onCopy: (id: string) => void, token: string | null) {
 
   return {
     query, setQuery: updateQuery,
-    results, isOpen,
+    results, isOpen, loading,
     selectedIdx, setSelectedIdx,
     inputRef,
     copyResult, onKeyDown, onFocus, onBlur, cancelClose,

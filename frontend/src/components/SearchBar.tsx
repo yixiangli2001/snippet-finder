@@ -6,6 +6,7 @@ interface Props {
   setQuery: (q: string) => void;
   results: Snippet[];
   isOpen: boolean;
+  loading: boolean;
   selectedIdx: number;
   setSelectedIdx: (i: number) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
@@ -18,7 +19,7 @@ interface Props {
 
 export default function SearchBar({
   query, setQuery,
-  results, isOpen,
+  results, isOpen, loading,
   selectedIdx, setSelectedIdx,
   inputRef,
   copyResult, onKeyDown, onFocus, onBlur, cancelClose,
@@ -38,7 +39,11 @@ export default function SearchBar({
         spellCheck={false}
       />
 
-      {isOpen && results.length > 0 && (
+      {isOpen && loading && (
+        <div className="search-empty search-loading">Searching…</div>
+      )}
+
+      {isOpen && !loading && results.length > 0 && (
         <ul className="search-dropdown" role="listbox">
           {results.map((s, i) => (
             <li
@@ -74,7 +79,7 @@ export default function SearchBar({
         </ul>
       )}
 
-      {isOpen && results.length === 0 && query.trim() && (
+      {isOpen && !loading && results.length === 0 && query.trim() && (
         <div className="search-empty">No snippets found</div>
       )}
     </div>
