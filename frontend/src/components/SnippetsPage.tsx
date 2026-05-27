@@ -15,7 +15,7 @@ export default function SnippetsPage() {
     language, setLanguage,
     addSnippet, handleCopy, handleDelete, handleEdit, handleToggleVisibility,
   } = useSnippets(token);
-  const languages = useLanguages(token);
+  const { languages, refreshLanguages } = useLanguages(token);
   const [showCreate, setShowCreate] = useState(false);
 
   if (loading) {
@@ -89,7 +89,7 @@ export default function SnippetsPage() {
         <CreateSnippetModal
           token={token || ''}
           onClose={() => setShowCreate(false)}
-          onCreate={snippet => { addSnippet(snippet); setShowCreate(false); }}
+          onCreate={snippet => { addSnippet(snippet); refreshLanguages(); setShowCreate(false); }}
         />
       )}
     </>
