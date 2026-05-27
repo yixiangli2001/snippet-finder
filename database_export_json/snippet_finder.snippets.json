@@ -1,0 +1,761 @@
+[{
+  "_id": {
+    "$oid": "69c26f1289cc65539133c016"
+  },
+  "title": "Set Up and Run FastAPI App",
+  "language": "BASH",
+  "code": "python3.11 -m venv venv\nsource venv/bin/activate\npip install -r requirements.txt\nuvicorn main:app --reload",
+  "description": "Create a virtual environment, install dependencies, and start the FastAPI development server with auto reload.",
+  "tags": [
+    "python",
+    "fastapi",
+    "backend",
+    "setup",
+    "dev"
+  ],
+  "times_copied": 20,
+  "created_at": {
+    "$date": "2026-03-24T11:01:38.817Z"
+  },
+  "updated_at": {
+    "$date": "2026-04-14T07:20:17.170Z"
+  },
+  "owner_id": null,
+  "is_public": true
+},
+{
+  "_id": {
+    "$oid": "69c26f1689cc65539133c017"
+  },
+  "title": "Start Frontend Dev Server",
+  "language": "BASH",
+  "code": "npm run dev",
+  "description": "Start the frontend development server for local development.",
+  "tags": [
+    "frontend",
+    "npm",
+    "dev",
+    "vite",
+    "react"
+  ],
+  "times_copied": 17,
+  "created_at": {
+    "$date": "2026-03-24T11:01:42.199Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-26T08:31:10.059Z"
+  },
+  "owner_id": null,
+  "is_public": true
+},
+{
+  "_id": {
+    "$oid": "69c26f1a89cc65539133c018"
+  },
+  "title": "Start PocketBase in Dev Mode",
+  "language": "BASH",
+  "code": "./pocketbase serve --dev --migrationsDir ./pb_migrations_dev",
+  "description": "Start PocketBase in development mode using the custom development migrations directory.",
+  "tags": [
+    "pocketbase",
+    "backend",
+    "dev",
+    "migrations"
+  ],
+  "times_copied": 14,
+  "created_at": {
+    "$date": "2026-03-24T11:01:46.070Z"
+  },
+  "updated_at": {
+    "$date": "2026-03-24T11:20:37.764Z"
+  },
+  "owner_id": null,
+  "is_public": true
+},
+{
+  "_id": {
+    "$oid": "69c26f1e89cc65539133c019"
+  },
+  "title": "Build Frontend for Production",
+  "language": "BASH",
+  "code": "npm run build",
+  "description": "Build the frontend into production-ready assets.",
+  "tags": [
+    "frontend",
+    "npm",
+    "build",
+    "production"
+  ],
+  "times_copied": 11,
+  "created_at": {
+    "$date": "2026-03-24T11:01:50.228Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-26T09:30:02.600Z"
+  },
+  "owner_id": null,
+  "is_public": true
+},
+{
+  "_id": {
+    "$oid": "69c26f2189cc65539133c01a"
+  },
+  "title": "Deploy Project with Wrangler",
+  "language": "BASH",
+  "code": "npx wrangler deploy",
+  "description": "Deploy a Cloudflare Workers or Pages project using Wrangler.",
+  "tags": [
+    "cloudflare",
+    "wrangler",
+    "deploy"
+  ],
+  "times_copied": 11,
+  "created_at": {
+    "$date": "2026-03-24T11:01:53.881Z"
+  },
+  "updated_at": {
+    "$date": "2026-04-01T07:18:32.068Z"
+  },
+  "owner_id": null,
+  "is_public": true
+},
+{
+  "_id": {
+    "$oid": "69c26f4b89cc65539133c01d"
+  },
+  "title": "Install Python Requirements",
+  "language": "BASH",
+  "code": "pip install -r requirements.txt",
+  "description": "Install Python dependencies from the requirements.txt file.",
+  "tags": [
+    "python",
+    "pip",
+    "dependencies"
+  ],
+  "times_copied": 9,
+  "created_at": {
+    "$date": "2026-03-24T11:02:35.739Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-26T09:30:12.864Z"
+  },
+  "owner_id": null,
+  "is_public": true
+},
+{
+  "_id": {
+    "$oid": "69f304169416da25dac7c837"
+  },
+  "title": "Create Pull Request",
+  "language": "BASH",
+  "code": "gh pr create --title \"Link Instagram feed header to profile and update feed URL\" --body \"$(cat <<'EOF'\n## Summary\n- Wraps the Instagram feed header (icon + heading) in a link to https://www.instagram.com/c0vidsolidaritysyd/\n- Opens in a new tab with `noopener noreferrer`\n- Adds hover opacity transition for visual feedback\n- Updates Behold feed URL in `useInstagramFeed` to the new endpoint\nEOF\n)\"",
+  "description": "Create a Pull Request to github using CLI",
+  "tags": [],
+  "times_copied": 7,
+  "created_at": {
+    "$date": "2026-04-30T07:26:14.081Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-26T09:28:44.898Z"
+  },
+  "owner_id": null,
+  "is_public": true
+},
+{
+  "_id": {
+    "$oid": "6a0fa2d608a7b707495220aa"
+  },
+  "title": "Alice's first snippet",
+  "language": "BASH",
+  "code": "some random code",
+  "description": "some description",
+  "tags": [
+    "someTag"
+  ],
+  "owner_id": {
+    "$oid": "6a0f9f9208a7b707495220a9"
+  },
+  "is_public": true,
+  "times_copied": 6,
+  "created_at": {
+    "$date": "2026-05-22T00:27:02.305Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-26T02:32:53.373Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1506331648a40ed8e00516"
+  },
+  "title": "OpenAI GPT-4 API with Function Calling",
+  "language": "PYTHON",
+  "code": "import openai\nimport json\n\nopenai.api_key = \"your-api-key\"\n\n# Define functions\nfunctions = [\n    {\n        \"name\": \"get_weather\",\n        \"description\": \"Get current weather for a location\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"location\": {\"type\": \"string\", \"description\": \"City name\"},\n                \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}\n            },\n            \"required\": [\"location\"]\n        }\n    }\n]\n\n# Call GPT-4 with functions\nresponse = openai.ChatCompletion.create(\n    model=\"gpt-4\",\n    messages=[{\"role\": \"user\", \"content\": \"What's the weather in San Francisco?\"}],\n    functions=functions,\n    function_call=\"auto\"\n)\n\n# Check if function was called\nif response.choices[0].message.get(\"function_call\"):\n    function_args = json.loads(response.choices[0].message.function_call.arguments)\n    print(f\"Function: {response.choices[0].message.function_call.name}\")\n    print(f\"Args: {function_args}\")",
+  "description": "Use OpenAI GPT-4 with function calling for structured outputs",
+  "tags": [
+    "PYTHON",
+    "openai",
+    "gpt4",
+    "function-calling"
+  ],
+  "owner_id": {
+    "$oid": "6a0f9f9208a7b707495220a9"
+  },
+  "is_public": true,
+  "times_copied": 4,
+  "created_at": {
+    "$date": "2026-05-26T02:32:19.768Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-27T02:17:20.619Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0501"
+  },
+  "owner_id": null,
+  "title": "OpenAI GPT-4 API with Function Calling",
+  "language": "python",
+  "code": "import openai\nimport json\n\nopenai.api_key = \"your-api-key\"\n\n# Define functions\nfunctions = [\n    {\n        \"name\": \"get_weather\",\n        \"description\": \"Get current weather for a location\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"location\": {\"type\": \"string\", \"description\": \"City name\"},\n                \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}\n            },\n            \"required\": [\"location\"]\n        }\n    }\n]\n\n# Call GPT-4 with functions\nresponse = openai.ChatCompletion.create(\n    model=\"gpt-4\",\n    messages=[{\"role\": \"user\", \"content\": \"What's the weather in San Francisco?\"}],\n    functions=functions,\n    function_call=\"auto\"\n)\n\n# Check if function was called\nif response.choices[0].message.get(\"function_call\"):\n    function_args = json.loads(response.choices[0].message.function_call.arguments)\n    print(f\"Function: {response.choices[0].message.function_call.name}\")\n    print(f\"Args: {function_args}\")",
+  "description": "Use OpenAI GPT-4 with function calling for structured outputs",
+  "tags": [
+    "openai",
+    "gpt4",
+    "function-calling"
+  ],
+  "is_public": true,
+  "times_copied": 457,
+  "created_at": {
+    "$date": "2025-02-25T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-07T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0502"
+  },
+  "owner_id": null,
+  "title": "LangChain Basic RAG Pipeline",
+  "language": "python",
+  "code": "from langchain.document_loaders import TextLoader\nfrom langchain.text_splitter import RecursiveCharacterTextSplitter\nfrom langchain.embeddings import OpenAIEmbeddings\nfrom langchain.vectorstores import Chroma\nfrom langchain.chains import RetrievalQA\nfrom langchain.llms import OpenAI\n\n# 1. Load documents\nloader = TextLoader('documents.txt')\ndocuments = loader.load()\n\n# 2. Split into chunks\ntext_splitter = RecursiveCharacterTextSplitter(\n    chunk_size=1000,\n    chunk_overlap=200\n)\nchunks = text_splitter.split_documents(documents)\n\n# 3. Create embeddings and vector store\nembeddings = OpenAIEmbeddings()\nvectorstore = Chroma.from_documents(chunks, embeddings)\n\n# 4. Create RAG chain\nqa_chain = RetrievalQA.from_chain_type(\n    llm=OpenAI(temperature=0),\n    retriever=vectorstore.as_retriever(search_kwargs={\"k\": 3})\n)\n\n# 5. Query\nresponse = qa_chain.run(\"What is the main topic?\")\nprint(response)",
+  "description": "Complete RAG pipeline with LangChain for question answering",
+  "tags": [
+    "langchain",
+    "rag",
+    "retrieval"
+  ],
+  "is_public": true,
+  "times_copied": 423,
+  "created_at": {
+    "$date": "2025-02-15T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-25T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0503"
+  },
+  "owner_id": null,
+  "title": "Prompt Engineering Best Practices",
+  "language": "python",
+  "code": "import openai\n\n# ❌ BAD: Vague prompt\nbad_prompt = \"Tell me about data\"\n\n# ✅ GOOD: Specific, clear prompt\ngood_prompt = \"\"\"\nExplain the difference between batch and stream processing in data engineering.\nInclude:\n1. Key characteristics of each\n2. Use cases\n3. One example tool for each\n\nKeep response under 200 words.\n\"\"\"\n\n# Few-shot prompting\nfew_shot_prompt = \"\"\"\nConvert natural language to SQL.\n\nExamples:\nQ: Show all customers\nA: SELECT * FROM customers;\n\nQ: Count orders by customer\nA: SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id;\n\nQ: Find customers who spent over $1000\nA: \"\"\"\n\n# Chain of thought prompting\ncot_prompt = \"\"\"\nProblem: A data pipeline processes 100GB of data per hour. It takes 2 hours to complete.\nIf we double the cluster size, how long will it take?\n\nLet's think step by step:\n1. \"\"\"\n\n# Role-based prompting\nrole_prompt = \"\"\"\nYou are a senior data architect reviewing a system design.\n[System design here]\nProvide a detailed critique focusing on scalability and reliability.\n\"\"\"",
+  "description": "Effective prompt engineering techniques for better LLM outputs",
+  "tags": [
+    "prompt-engineering",
+    "best-practices",
+    "llm"
+  ],
+  "is_public": true,
+  "times_copied": 412,
+  "created_at": {
+    "$date": "2025-03-01T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-11T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0504"
+  },
+  "owner_id": null,
+  "title": "Model Deployment with FastAPI",
+  "language": "python",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel\nimport joblib\nimport numpy as np\n\n# Load model\nmodel = joblib.load(\"model.joblib\")\n\napp = FastAPI(title=\"ML Model API\")\n\nclass PredictionInput(BaseModel):\n    features: list[float]\n\nclass PredictionOutput(BaseModel):\n    prediction: int\n    probability: float\n\n@app.post(\"/predict\", response_model=PredictionOutput)\nasync def predict(input_data: PredictionInput):\n    \"\"\"Make prediction\"\"\"\n    # Reshape input\n    features = np.array(input_data.features).reshape(1, -1)\n    \n    # Predict\n    prediction = model.predict(features)[0]\n    probability = model.predict_proba(features)[0][prediction]\n    \n    return PredictionOutput(\n        prediction=int(prediction),\n        probability=float(probability)\n    )\n\n@app.get(\"/health\")\nasync def health():\n    return {\"status\": \"healthy\"}\n\n# Run: uvicorn main:app --reload\n# Test: curl -X POST \"http://localhost:8000/predict\" \\\n#   -H \"Content-Type: application/json\" \\\n#   -d '{\"features\": [1.0, 2.0, 3.0]}'",
+  "description": "Deploy ML model as REST API with FastAPI",
+  "tags": [
+    "fastapi",
+    "deployment",
+    "mlops"
+  ],
+  "is_public": true,
+  "times_copied": 412,
+  "created_at": {
+    "$date": "2025-03-18T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-28T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0505"
+  },
+  "owner_id": null,
+  "title": "LangChain Conversational RAG with Memory",
+  "language": "python",
+  "code": "from langchain.chains import ConversationalRetrievalChain\nfrom langchain.memory import ConversationBufferMemory\nfrom langchain.llms import OpenAI\nfrom langchain.vectorstores import Chroma\n\n# Create memory for conversation history\nmemory = ConversationBufferMemory(\n    memory_key=\"chat_history\",\n    return_messages=True,\n    output_key=\"answer\"\n)\n\n# Create conversational RAG chain\nqa_chain = ConversationalRetrievalChain.from_llm(\n    llm=OpenAI(temperature=0),\n    retriever=vectorstore.as_retriever(),\n    memory=memory,\n    return_source_documents=True\n)\n\n# Multi-turn conversation\nresponse1 = qa_chain({\"question\": \"What is machine learning?\"})\nprint(response1['answer'])\n\n# Follow-up question (uses conversation history)\nresponse2 = qa_chain({\"question\": \"Can you give me an example?\"})\nprint(response2['answer'])\n\n# View sources\nfor doc in response2['source_documents']:\n    print(f\"Source: {doc.metadata['source']}\")",
+  "description": "Build conversational RAG system with memory",
+  "tags": [
+    "langchain",
+    "conversational",
+    "memory"
+  ],
+  "is_public": true,
+  "times_copied": 389,
+  "created_at": {
+    "$date": "2025-02-18T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-28T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0506"
+  },
+  "owner_id": null,
+  "title": "MLflow Experiment Tracking",
+  "language": "python",
+  "code": "import mlflow\nimport mlflow.sklearn\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.model_selection import train_test_split\n\n# Set experiment\nmlflow.set_experiment(\"customer-churn-prediction\")\n\n# Start run\nwith mlflow.start_run(run_name=\"random-forest-v1\"):\n    # Log parameters\n    n_estimators = 100\n    max_depth = 10\n    mlflow.log_param(\"n_estimators\", n_estimators)\n    mlflow.log_param(\"max_depth\", max_depth)\n    \n    # Train model\n    model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)\n    model.fit(X_train, y_train)\n    \n    # Log metrics\n    train_score = model.score(X_train, y_train)\n    test_score = model.score(X_test, y_test)\n    mlflow.log_metric(\"train_accuracy\", train_score)\n    mlflow.log_metric(\"test_accuracy\", test_score)\n    \n    # Log model\n    mlflow.sklearn.log_model(model, \"model\")\n    \n    # Log artifacts\n    feature_importance = pd.DataFrame({\n        'feature': X_train.columns,\n        'importance': model.feature_importances_\n    })\n    feature_importance.to_csv(\"feature_importance.csv\")\n    mlflow.log_artifact(\"feature_importance.csv\")\n\nprint(f\"Run ID: {mlflow.active_run().info.run_id}\")",
+  "description": "Track ML experiments with MLflow for reproducibility",
+  "tags": [
+    "mlflow",
+    "mlops",
+    "experiment-tracking"
+  ],
+  "is_public": true,
+  "times_copied": 389,
+  "created_at": {
+    "$date": "2025-03-17T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-27T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0507"
+  },
+  "owner_id": null,
+  "title": "OpenAI Embeddings for Semantic Search",
+  "language": "python",
+  "code": "import openai\nimport numpy as np\nfrom sklearn.metrics.pairwise import cosine_similarity\n\nopenai.api_key = \"your-api-key\"\n\ndef get_embedding(text, model=\"text-embedding-ada-002\"):\n    response = openai.Embedding.create(\n        input=text,\n        model=model\n    )\n    return response['data'][0]['embedding']\n\n# Create embeddings for documents\ndocuments = [\n    \"PySpark is a distributed computing framework\",\n    \"SQL is used for database queries\",\n    \"Python is a programming language\"\n]\n\ndoc_embeddings = [get_embedding(doc) for doc in documents]\n\n# Search query\nquery = \"big data processing\"\nquery_embedding = get_embedding(query)\n\n# Calculate similarities\nsimilarities = cosine_similarity([query_embedding], doc_embeddings)[0]\n\n# Get most similar documents\nranked = sorted(zip(documents, similarities), key=lambda x: x[1], reverse=True)\nfor doc, score in ranked:\n    print(f\"{score:.3f}: {doc}\")",
+  "description": "Generate and use OpenAI embeddings for semantic search",
+  "tags": [
+    "openai",
+    "embeddings",
+    "semantic-search"
+  ],
+  "is_public": true,
+  "times_copied": 378,
+  "created_at": {
+    "$date": "2025-02-26T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-08T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0508"
+  },
+  "owner_id": null,
+  "title": "Pinecone Vector Database Setup",
+  "language": "python",
+  "code": "import pinecone\nimport openai\n\n# Initialize Pinecone\npinecone.init(\n    api_key=\"your-pinecone-key\",\n    environment=\"us-west1-gcp\"\n)\n\n# Create index\nindex_name = \"document-embeddings\"\nif index_name not in pinecone.list_indexes():\n    pinecone.create_index(\n        name=index_name,\n        dimension=1536,  # OpenAI embedding dimension\n        metric=\"cosine\"\n    )\n\n# Connect to index\nindex = pinecone.Index(index_name)\n\n# Upsert vectors\nvectors = [\n    (\"id1\", [0.1] * 1536, {\"text\": \"Sample document 1\"}),\n    (\"id2\", [0.2] * 1536, {\"text\": \"Sample document 2\"})\n]\nindex.upsert(vectors=vectors)\n\n# Query\nquery_vector = [0.15] * 1536\nresults = index.query(\n    vector=query_vector,\n    top_k=5,\n    include_metadata=True\n)\n\nfor match in results.matches:\n    print(f\"Score: {match.score}, Text: {match.metadata['text']}\")",
+  "description": "Set up and use Pinecone vector database for embeddings",
+  "tags": [
+    "pinecone",
+    "vector-db",
+    "embeddings"
+  ],
+  "is_public": true,
+  "times_copied": 367,
+  "created_at": {
+    "$date": "2025-03-05T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-15T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0509"
+  },
+  "owner_id": null,
+  "title": "SQL Query Optimization Best Practices",
+  "language": "sql",
+  "code": "-- ❌ BAD: SELECT *\nSELECT * FROM large_table;\n\n-- ✅ GOOD: Select only needed columns\nSELECT id, name, email FROM large_table;\n\n-- ❌ BAD: Function on indexed column\nSELECT * FROM orders WHERE DATE(created_at) = '2024-01-15';\n\n-- ✅ GOOD: Sargable query (can use index)\nSELECT * FROM orders \nWHERE created_at >= '2024-01-15' \n  AND created_at < '2024-01-16';\n\n-- ❌ BAD: OR with different columns\nSELECT * FROM users WHERE email = 'test@example.com' OR phone = '1234567890';\n\n-- ✅ GOOD: Use UNION ALL for OR conditions\nSELECT * FROM users WHERE email = 'test@example.com'\nUNION ALL\nSELECT * FROM users WHERE phone = '1234567890' AND email != 'test@example.com';\n\n-- ❌ BAD: NOT IN with subquery (slow for large sets)\nSELECT * FROM orders WHERE customer_id NOT IN (SELECT id FROM deleted_customers);\n\n-- ✅ GOOD: Use NOT EXISTS or LEFT JOIN\nSELECT o.* FROM orders o\nWHERE NOT EXISTS (SELECT 1 FROM deleted_customers d WHERE d.id = o.customer_id);\n\n-- ✅ BETTER: Optimize JOIN order (smaller table first in hash join)\nSELECT /*+ LEADING(small_table large_table) */ *\nFROM large_table l\nJOIN small_table s ON l.id = s.foreign_id;\n\n-- Use EXPLAIN ANALYZE to verify\nEXPLAIN (ANALYZE, BUFFERS)\nSELECT * FROM orders WHERE customer_id = 123;",
+  "description": "Common SQL optimization patterns and anti-patterns",
+  "tags": [
+    "sql",
+    "optimization",
+    "performance"
+  ],
+  "is_public": true,
+  "times_copied": 345,
+  "created_at": {
+    "$date": "2025-04-18T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-04-27T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c050a"
+  },
+  "owner_id": null,
+  "title": "Docker Compose for Local Data Stack",
+  "language": "dockerfile",
+  "code": "# docker-compose.yml for local data engineering stack\nversion: '3.8'\n\nservices:\n  postgres:\n    image: postgres:14\n    container_name: local-postgres\n    environment:\n      POSTGRES_USER: dataeng\n      POSTGRES_PASSWORD: password\n      POSTGRES_DB: warehouse\n    ports:\n      - \"5432:5432\"\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n      - ./init-scripts:/docker-entrypoint-initdb.d\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U dataeng\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5\n\n  kafka:\n    image: confluentinc/cp-kafka:7.4.0\n    container_name: local-kafka\n    depends_on:\n      - zookeeper\n    ports:\n      - \"9092:9092\"\n    environment:\n      KAFKA_BROKER_ID: 1\n      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'\n      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092\n      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1\n\n  zookeeper:\n    image: confluentinc/cp-zookeeper:7.4.0\n    container_name: local-zookeeper\n    ports:\n      - \"2181:2181\"\n    environment:\n      ZOOKEEPER_CLIENT_PORT: 2181\n      ZOOKEEPER_TICK_TIME: 2000\n\n  spark:\n    image: bitnami/spark:3.4.0\n    container_name: local-spark\n    environment:\n      - SPARK_MODE=master\n      - SPARK_MASTER_HOST=spark\n      - SPARK_MASTER_PORT=7077\n    ports:\n      - \"8080:8080\"\n      - \"7077:7077\"\n    volumes:\n      - ./spark-apps:/opt/spark-apps\n      - ./spark-data:/opt/spark-data\n\n  airflow:\n    image: apache/airflow:2.6.0\n    container_name: local-airflow\n    depends_on:\n      - postgres\n    environment:\n      AIRFLOW__CORE__EXECUTOR: LocalExecutor\n      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://dataeng:password@postgres/airflow\n      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'\n    ports:\n      - \"8081:8080\"\n    volumes:\n      - ./dags:/opt/airflow/dags\n      - ./logs:/opt/airflow/logs\n    command: >\n      bash -c \"airflow db init &&\n               airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com &&\n               airflow webserver\"\n\n  jupyter:\n    image: jupyter/pyspark-notebook:latest\n    container_name: local-jupyter\n    ports:\n      - \"8888:8888\"\n    volumes:\n      - ./notebooks:/home/jovyan/work\n    environment:\n      JUPYTER_ENABLE_LAB: \"yes\"\n\nvolumes:\n  postgres_data:\n\n# Usage:\n# Start: docker-compose up -d\n# Stop: docker-compose down\n# View logs: docker-compose logs -f [service]\n# Access:\n#   - Postgres: localhost:5432\n#   - Kafka: localhost:9092\n#   - Spark UI: localhost:8080\n#   - Airflow: localhost:8081\n#   - Jupyter: localhost:8888",
+  "description": "Complete local data stack with Docker Compose",
+  "tags": [
+    "docker",
+    "compose",
+    "local-development"
+  ],
+  "is_public": true,
+  "times_copied": 345,
+  "created_at": {
+    "$date": "2025-05-15T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-05-24T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c050b"
+  },
+  "owner_id": null,
+  "title": "OpenAI Chat with System Prompts",
+  "language": "python",
+  "code": "import openai\n\nopenai.api_key = \"your-api-key\"\n\n# System prompt defines assistant behavior\nmessages = [\n    {\n        \"role\": \"system\", \n        \"content\": \"You are a senior data engineer with 10 years of experience. Provide concise, technical answers.\"\n    },\n    {\n        \"role\": \"user\",\n        \"content\": \"How do I optimize a slow PySpark job?\"\n    }\n]\n\nresponse = openai.ChatCompletion.create(\n    model=\"gpt-4\",\n    messages=messages,\n    temperature=0.7,\n    max_tokens=500\n)\n\nprint(response.choices[0].message.content)\n\n# Multi-turn conversation\nmessages.append({\n    \"role\": \"assistant\",\n    \"content\": response.choices[0].message.content\n})\n\nmessages.append({\n    \"role\": \"user\",\n    \"content\": \"Can you show me a code example?\"\n})\n\nresponse = openai.ChatCompletion.create(\n    model=\"gpt-4\",\n    messages=messages\n)",
+  "description": "Use OpenAI Chat API with system prompts and conversation history",
+  "tags": [
+    "openai",
+    "chat",
+    "system-prompt"
+  ],
+  "is_public": true,
+  "times_copied": 334,
+  "created_at": {
+    "$date": "2025-02-27T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-09T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c050c"
+  },
+  "owner_id": null,
+  "title": "Great Expectations Data Validation",
+  "language": "python",
+  "code": "import great_expectations as gx\nimport pandas as pd\n\n# Create data context\ncontext = gx.get_context()\n\n# Load data\ndf = pd.read_csv(\"data.csv\")\n\n# Create validator\nvalidator = context.sources.pandas_default.read_dataframe(df)\n\n# Add expectations\nvalidator.expect_table_row_count_to_be_between(min_value=100, max_value=10000)\nvalidator.expect_column_values_to_not_be_null(column=\"customer_id\")\nvalidator.expect_column_values_to_be_unique(column=\"order_id\")\nvalidator.expect_column_values_to_be_in_set(\n    column=\"status\", \n    value_set=[\"pending\", \"completed\", \"cancelled\"]\n)\nvalidator.expect_column_mean_to_be_between(\n    column=\"amount\",\n    min_value=0,\n    max_value=1000\n)\n\n# Validate\nresults = validator.validate()\nprint(f\"Validation success: {results.success}\")\nprint(f\"Failed expectations: {len([r for r in results.results if not r.success])}\")",
+  "description": "Validate data quality with Great Expectations framework",
+  "tags": [
+    "great-expectations",
+    "data-quality",
+    "validation"
+  ],
+  "is_public": true,
+  "times_copied": 334,
+  "created_at": {
+    "$date": "2025-03-11T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-21T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c050d"
+  },
+  "owner_id": null,
+  "title": "Time-based Feature Engineering",
+  "language": "python",
+  "code": "import pandas as pd\nimport numpy as np\n\ndef create_time_features(df, date_column):\n    \"\"\"Extract comprehensive time-based features\"\"\"\n    df = df.copy()\n    df[date_column] = pd.to_datetime(df[date_column])\n    \n    # Basic time components\n    df['year'] = df[date_column].dt.year\n    df['month'] = df[date_column].dt.month\n    df['day'] = df[date_column].dt.day\n    df['day_of_week'] = df[date_column].dt.dayofweek\n    df['day_of_year'] = df[date_column].dt.dayofyear\n    df['week_of_year'] = df[date_column].dt.isocalendar().week\n    df['quarter'] = df[date_column].dt.quarter\n    \n    # Binary indicators\n    df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)\n    df['is_month_start'] = df[date_column].dt.is_month_start.astype(int)\n    df['is_month_end'] = df[date_column].dt.is_month_end.astype(int)\n    df['is_quarter_start'] = df[date_column].dt.is_quarter_start.astype(int)\n    df['is_quarter_end'] = df[date_column].dt.is_quarter_end.astype(int)\n    \n    # Cyclical features (important for ML!)\n    df['day_of_week_sin'] = np.sin(2 * np.pi * df['day_of_week'] / 7)\n    df['day_of_week_cos'] = np.cos(2 * np.pi * df['day_of_week'] / 7)\n    df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12)\n    df['month_cos'] = np.cos(2 * np.pi * df['month'] / 12)\n    \n    # Time since epoch (for trend modeling)\n    df['days_since_epoch'] = (df[date_column] - pd.Timestamp('1970-01-01')).dt.days\n    \n    return df\n\n# Usage\ndf = create_time_features(df, 'transaction_date')",
+  "description": "Extract comprehensive time-based features including cyclical encodings",
+  "tags": [
+    "feature-engineering",
+    "time-series",
+    "datetime"
+  ],
+  "is_public": true,
+  "times_copied": 334,
+  "created_at": {
+    "$date": "2025-03-24T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-04-03T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c050e"
+  },
+  "owner_id": null,
+  "title": "SQL Deduplication with ROW_NUMBER",
+  "language": "sql",
+  "code": "WITH ranked_data AS (\n  SELECT *,\n    ROW_NUMBER() OVER (\n      PARTITION BY customer_id, order_date \n      ORDER BY created_at DESC\n    ) as rn\n  FROM orders\n)\nSELECT * \nFROM ranked_data \nWHERE rn = 1;",
+  "description": "Remove duplicates keeping the most recent record per group",
+  "tags": [
+    "deduplication",
+    "window",
+    "data-quality"
+  ],
+  "is_public": true,
+  "times_copied": 312,
+  "created_at": {
+    "$date": "2025-01-11T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-01-21T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c050f"
+  },
+  "owner_id": null,
+  "title": "dbt Incremental Model Template",
+  "language": "dbt",
+  "code": "{{\n  config(\n    materialized='incremental',\n    unique_key='id',\n    on_schema_change='fail'\n  )\n}}\n\nSELECT * FROM {{ ref('staging_orders') }}\n\n{% if is_incremental() %}\n  -- Only process new records\n  WHERE updated_at > (SELECT MAX(updated_at) FROM {{ this }})\n{% endif %}",
+  "description": "Efficient incremental model that only processes new data",
+  "tags": [
+    "incremental",
+    "performance",
+    "materialization"
+  ],
+  "is_public": true,
+  "times_copied": 312,
+  "created_at": {
+    "$date": "2025-01-13T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-01-23T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0510"
+  },
+  "owner_id": null,
+  "title": "ML Pipeline with Preprocessing",
+  "language": "python",
+  "code": "from sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.ensemble import RandomForestClassifier\n\n# Create preprocessing + model pipeline\npipeline = Pipeline([\n    ('imputer', SimpleImputer(strategy='median')),\n    ('scaler', StandardScaler()),\n    ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))\n])\n\n# Fit and predict in one step\npipeline.fit(X_train, y_train)\ny_pred = pipeline.predict(X_test)\n\n# Pipeline ensures same preprocessing on train and test\nscore = pipeline.score(X_test, y_test)\nprint(f\"Accuracy: {score:.3f}\")",
+  "description": "Create ML pipeline with preprocessing steps and model",
+  "tags": [
+    "sklearn",
+    "pipeline",
+    "preprocessing"
+  ],
+  "is_public": true,
+  "times_copied": 312,
+  "created_at": {
+    "$date": "2025-02-06T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0511"
+  },
+  "owner_id": null,
+  "title": "LangChain Document Loading from Multiple Sources",
+  "language": "python",
+  "code": "from langchain.document_loaders import (\n    PyPDFLoader, CSVLoader, UnstructuredMarkdownLoader,\n    DirectoryLoader, WebBaseLoader\n)\n\n# Load PDF\npdf_loader = PyPDFLoader(\"document.pdf\")\npdf_docs = pdf_loader.load()\n\n# Load all PDFs in directory\npdf_dir_loader = DirectoryLoader(\"./pdfs\", glob=\"**/*.pdf\", loader_cls=PyPDFLoader)\nall_pdfs = pdf_dir_loader.load()\n\n# Load CSV\ncsv_loader = CSVLoader(\"data.csv\")\ncsv_docs = csv_loader.load()\n\n# Load from web\nweb_loader = WebBaseLoader(\"https://example.com/article\")\nweb_docs = web_loader.load()\n\n# Load Markdown\nmd_loader = UnstructuredMarkdownLoader(\"README.md\")\nmd_docs = md_loader.load()\n\n# Combine all documents\nall_docs = pdf_docs + csv_docs + web_docs + md_docs\nprint(f\"Loaded {len(all_docs)} documents\")",
+  "description": "Load documents from various sources (PDF, CSV, web, markdown)",
+  "tags": [
+    "langchain",
+    "document-loading",
+    "rag"
+  ],
+  "is_public": true,
+  "times_copied": 312,
+  "created_at": {
+    "$date": "2025-02-16T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-26T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0512"
+  },
+  "owner_id": null,
+  "title": "Docker Container for ML Model",
+  "language": "dockerfile",
+  "code": "# Dockerfile for ML model deployment\nFROM python:3.9-slim\n\n# Set working directory\nWORKDIR /app\n\n# Install dependencies\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# Copy model and code\nCOPY model.joblib .\nCOPY app.py .\n\n# Expose port\nEXPOSE 8000\n\n# Health check\nHEALTHCHECK --interval=30s --timeout=3s \\\n  CMD curl -f http://localhost:8000/health || exit 1\n\n# Run application\nCMD [\"uvicorn\", \"app:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n\n# requirements.txt:\n# fastapi==0.104.1\n# uvicorn==0.24.0\n# scikit-learn==1.3.2\n# joblib==1.3.2\n# pydantic==2.5.0\n# numpy==1.26.2\n\n# Build: docker build -t ml-model:v1 .\n# Run: docker run -p 8000:8000 ml-model:v1\n# Test: curl http://localhost:8000/health",
+  "description": "Containerize ML model with Docker for deployment",
+  "tags": [
+    "docker",
+    "containerization",
+    "deployment"
+  ],
+  "is_public": true,
+  "times_copied": 312,
+  "created_at": {
+    "$date": "2025-03-21T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-03-31T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0513"
+  },
+  "owner_id": null,
+  "title": "SQL Index Optimization Strategies",
+  "language": "sql",
+  "code": "-- Create indexes for common queries\nCREATE INDEX idx_orders_customer_date ON orders(customer_id, order_date DESC);\n\n-- Partial index (PostgreSQL)\nCREATE INDEX idx_active_orders ON orders(customer_id)\nWHERE status = 'active';\n\n-- Covering index (include all columns needed)\nCREATE INDEX idx_orders_covering ON orders(customer_id, order_date)\nINCLUDE (amount, status);\n\n-- Multi-column index for range + equality\nCREATE INDEX idx_date_range_customer ON orders(order_date, customer_id);\n\n-- Check index usage (PostgreSQL)\nSELECT \n    schemaname,\n    tablename,\n    indexname,\n    idx_scan,\n    idx_tup_read,\n    idx_tup_fetch\nFROM pg_stat_user_indexes\nORDER BY idx_scan DESC;\n\n-- Find unused indexes\nSELECT \n    schemaname,\n    tablename,\n    indexname\nFROM pg_stat_user_indexes\nWHERE idx_scan = 0\n  AND indexname NOT LIKE 'pg_%';\n\n-- Analyze query plan\nEXPLAIN ANALYZE\nSELECT * FROM orders\nWHERE customer_id = 123\n  AND order_date > '2024-01-01'\nORDER BY order_date DESC;",
+  "description": "Create and optimize indexes for better query performance",
+  "tags": [
+    "sql",
+    "indexes",
+    "performance"
+  ],
+  "is_public": true,
+  "times_copied": 312,
+  "created_at": {
+    "$date": "2025-04-14T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-04-23T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1507adf9d4ea43872c0514"
+  },
+  "owner_id": null,
+  "title": "Databricks Delta Live Tables Pipeline",
+  "language": "databricks",
+  "code": "# Bronze table - raw ingestion\n@dlt.table(\n    comment=\"Raw orders from source system\",\n    table_properties={\n        \"quality\": \"bronze\",\n        \"pipelines.autoOptimize.zOrderCols\": \"order_id\"\n    }\n)\ndef orders_bronze():\n    return (\n        spark.readStream\n        .format(\"cloudFiles\")\n        .option(\"cloudFiles.format\", \"json\")\n        .load(\"/mnt/source/orders\")\n    )\n\n# Silver table - cleaned and validated\n@dlt.table(\n    comment=\"Cleaned orders with validation\",\n    table_properties={\"quality\": \"silver\"}\n)\n@dlt.expect_or_drop(\"valid_order_id\", \"order_id IS NOT NULL\")\n@dlt.expect_or_drop(\"valid_amount\", \"amount > 0\")\ndef orders_silver():\n    return (\n        dlt.read_stream(\"orders_bronze\")\n        .select(\n            \"order_id\",\n            \"customer_id\",\n            col(\"amount\").cast(\"decimal(10,2)\"),\n            to_date(\"order_date\").alias(\"order_date\")\n        )\n        .dropDuplicates([\"order_id\"])\n    )\n\n# Gold table - aggregated for analytics\n@dlt.table(\n    comment=\"Daily order aggregates\",\n    table_properties={\"quality\": \"gold\"}\n)\ndef daily_order_summary():\n    return (\n        dlt.read(\"orders_silver\")\n        .groupBy(\"order_date\")\n        .agg(\n            count(\"order_id\").alias(\"total_orders\"),\n            sum(\"amount\").alias(\"total_revenue\"),\n            countDistinct(\"customer_id\").alias(\"unique_customers\")\n        )\n    )",
+  "description": "Build medallion architecture with Delta Live Tables",
+  "tags": [
+    "databricks",
+    "dlt",
+    "medallion"
+  ],
+  "is_public": true,
+  "times_copied": 313,
+  "created_at": {
+    "$date": "2025-05-06T00:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2025-05-15T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a16442ad82688cb375a22d8"
+  },
+  "title": "Some C++ code",
+  "language": "C++",
+  "code": "Some C++ code",
+  "description": "Some description",
+  "tags": [
+    "c++",
+    "some"
+  ],
+  "owner_id": {
+    "$oid": "6a0f9f5d08a7b707495220a8"
+  },
+  "is_public": true,
+  "times_copied": 4,
+  "created_at": {
+    "$date": "2026-05-27T01:08:58.829Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-27T02:17:19.098Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a164477d82688cb375a22d9"
+  },
+  "title": "Sorting an array",
+  "language": "JAVASCRIPT",
+  "code": "let a = [9, 3, 5, 1];\na.sort((x, y) => x - y); // Ascending\nconsole.log(a);\n\na.sort((x, y) => y - x); // Descending\nconsole.log(a);",
+  "description": "Sorting an array",
+  "tags": [
+    "array"
+  ],
+  "owner_id": {
+    "$oid": "6a0f9f5d08a7b707495220a8"
+  },
+  "is_public": true,
+  "times_copied": 4,
+  "created_at": {
+    "$date": "2026-05-27T01:10:15.554Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-27T02:17:17.958Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1644d6d82688cb375a22da"
+  },
+  "title": "Count by the properties of an array of objects",
+  "language": "TYPESCRIPT",
+  "code": "export const countBy = <T extends Record<string, string>, K extends keyof T>(\n  arr: T[],\n  prop: K\n): Record<string, number> =>\n  arr.reduce((prev, curr) => ((prev[curr[prop]] = ++prev[curr[prop]] || 1), prev), {} as Record<string, number>);",
+  "description": null,
+  "tags": [],
+  "owner_id": {
+    "$oid": "6a0f9f5d08a7b707495220a8"
+  },
+  "is_public": true,
+  "times_copied": 6,
+  "created_at": {
+    "$date": "2026-05-27T01:11:50.932Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-27T02:17:16.818Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a165c314805ec52e201aa29"
+  },
+  "title": "some swift code",
+  "language": "SWIFT",
+  "code": "some swift cod23",
+  "description": "some description",
+  "tags": [
+    "aTag"
+  ],
+  "owner_id": null,
+  "is_public": true,
+  "times_copied": 4,
+  "created_at": {
+    "$date": "2026-05-27T02:51:29.157Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-27T03:24:40.462Z"
+  }
+}]

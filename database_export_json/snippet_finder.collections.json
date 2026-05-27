@@ -1,0 +1,53 @@
+[{
+  "_id": {
+    "$oid": "6a13d182bb06785b84065612"
+  },
+  "owner_id": {
+    "$oid": "6a0f9f9208a7b707495220a9"
+  },
+  "name": "Alice's first snippet collection",
+  "description": "some description",
+  "snippet_ids": [
+    {
+      "$oid": "6a0fa2d608a7b707495220aa"
+    },
+    {
+      "$oid": "69c26f2189cc65539133c01a"
+    }
+  ],
+  "is_public": true,
+  "created_at": {
+    "$date": "2026-05-25T04:35:14.591Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-26T03:30:52.616Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a13dd7aa392d1ffeccd90aa"
+  },
+  "owner_id": {
+    "$oid": "6a0f9f9208a7b707495220a9"
+  },
+  "name": "Alice's public collection",
+  "description": "hey",
+  "snippet_ids": [
+    {
+      "$oid": "69f304169416da25dac7c837"
+    },
+    {
+      "$oid": "69c26f4b89cc65539133c01d"
+    },
+    {
+      "$oid": "69c26f1689cc65539133c017"
+    }
+  ],
+  "is_public": false,
+  "created_at": {
+    "$date": "2026-05-25T05:26:18.269Z"
+  },
+  "updated_at": {
+    "$date": "2026-05-25T05:33:59.768Z"
+  }
+}]
