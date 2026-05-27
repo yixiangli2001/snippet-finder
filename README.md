@@ -1,45 +1,52 @@
-# SnippetFinder
+# Snippet Finder
 
-A single-page web application for storing, organising, and quickly retrieving code snippets. Developers often reuse the same patterns across projects. SnippetFinder gives them a personal, searchable library where they can save snippets with titles, descriptions, language tags, and keywords. Any snippet can be copied to the clipboard in a single click or keystroke.
+A single-page web application where developers can save, organise, and share code snippets. Users can create an account, store snippets with titles, descriptions, language tags, and keywords, group them into collections, and search across everything in real time. Any snippet can be copied to the clipboard in one click. Snippets can be kept private or made public for others to browse.
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | **Frontend** | React 19 + TypeScript, Vite |
-| **Styling** | Plain CSS with CSS custom properties, light/dark theme toggle (persisted in `localStorage`) |
-| **Backend** | Python 3, FastAPI|
-| **Database** | MongoDB (accessed via Motor async driver) |
-| **Data validation** | Pydantic v2 models |
+| **Styling** | Plain CSS with CSS custom properties, light/dark theme |
+| **Backend** | Python 3.11, FastAPI |
+| **Database** | MongoDB (Motor async driver) |
+| **Auth** | JWT (python-jose), bcrypt password hashing (passlib) |
+| **Data validation** | Pydantic v2 |
+| **Tests** | pytest, pytest-asyncio |
 
-## Features
+## How to Run
 
-- **Full CRUD** — create, view, edit, and delete snippets
-- **One-click copy** — click anywhere on a code block to copy it. A hover icon and pointer cursor hint at the action, and a copy counter tracks usage
-- **Live search** — a debounced search bar (300 ms) queries title, description, code, and tags on the server. Results appear in a dropdown with highlighted keywords and a code preview
-- **Keyboard navigation** — use arrow keys to browse results, Enter to copy, and Escape to dismiss
-- **Tag system** — organise snippets with comma-separated tags shown as pills
-- **Inline editing** — edit a snippet's details without leaving the page
-- **Delete confirmation** — a confirmation dialog prevents accidental deletions
-- **Error handling** — edits and deletes update the UI immediately, then roll back automatically if the server request fails. The initial load shows a retry button on failure, malformed snippet IDs return controlled API errors, and search terms are escaped before reaching Mongo regex queries
-- **Dark mode toggle** — a light/dark switch in the header, saved across sessions via `localStorage`, with a system-preference fallback
-- **Responsive design** — the layout adapts from multi-column on desktop to single-column on mobile. The modal becomes a bottom sheet, the "Add Snippet" button collapses to an icon, and the search dropdown goes full-width
-- **Loading skeleton** — shimmer placeholder cards match the real card layout while data loads
+### Prerequisites
 
-## Setup and Run
+- Python 3.11
+- Node.js 18+
+- A running MongoDB instance (local or Atlas). Copy the connection string for the next step.
 
-1. In `backend/.env`, set `MONGO_URL` and, if needed, adjust `CORS_ORIGINS` for your frontend origin.
-2. Start the backend:
+### Backend
 
 ```bash
 cd backend
 python3.11 -m venv venv
-source venv/bin/activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+```
+
+Create a `.env` file in `backend/`:
+
+```
+MONGO_URL=<your MongoDB connection string>
+JWT_SECRET=<any long random string>
+```
+
+Start the server:
+
+```bash
 uvicorn main:app --reload
 ```
 
-3. Start the frontend in a second terminal:
+The API runs at `http://127.0.0.1:8000`.
+
+### Frontend
 
 ```bash
 cd frontend
@@ -47,44 +54,117 @@ npm install
 npm run dev
 ```
 
-4. Open the frontend URL shown by Vite, usually `http://localhost:5173`. The backend API runs on `http://127.0.0.1:8000`.
+Open the URL shown by Vite, usually `http://localhost:5173`.
+
+### Tests
+
+```bash
+cd backend
+pytest
+```
 
 ## Folder Structure
 
 ```
-SnippetFinder/
+snippet-finder/
+│
 ├── backend/
-│   ├── main.py              # FastAPI app entry, env-driven CORS config
-│   ├── database.py          # Motor client + MongoDB connection
-│   ├── .env                 # Environment variables (Mongo URL, allowed frontend origins)
+│   ├── main.py                  # FastAPI app entry point, CORS configuration
+│   ├── database.py              # Motor client, MongoDB collection references
+│   ├── conftest.py              # pytest fixtures (test DB setup, auth helpers)
+│   ├── import_snippets.py       # Utility script to seed sample data
+│   ├── requirements.txt         # Python dependencies
+│   │
 │   ├── models/
-│   │   └── snippet.py       # Pydantic schemas (Create, Update, Response)
+│   │   ├── snippet.py           # Pydantic schemas for snippet (Create, Update, Response)
+│   │   ├── collection.py        # Pydantic schemas for collection
+│   │   └── user.py              # Pydantic schemas for user and auth tokens
+│   │
 │   ├── routers/
-│   │   └── snippets.py      # REST endpoints (GET, POST, PUT, DELETE, PATCH copy)
-│   └── requirements.txt     # Python dependencies
+│   │   ├── snippets.py          # Snippet CRUD + visibility toggle + copy counter
+│   │   ├── collections.py       # Collection CRUD + add/remove snippets
+│   │   ├── auth.py              # Register and login endpoints, JWT issuance
+│   │   ├── users.py             # Profile read, update username/email/password, delete account
+│   │   └── admin.py             # Admin-only routes: list all users and snippets, force delete
+│   │
+│   ├── utils/
+│   │   ├── security.py          # JWT creation and verification, auth dependencies
+│   │   ├── password_rules.py    # Password validation (length, complexity)
+│   │   └── user_lookup.py       # Shared helper to resolve owner_id to username
+│   │
+│   └── tests/
+│       ├── fakes.py             # In-memory fake collections for unit tests
+│       ├── test_auth.py         # Register, login, token validation tests
+│       ├── test_snippets.py     # Snippet CRUD, visibility, ownership tests
+│       ├── test_collections.py  # Collection CRUD, snippet membership tests
+│       ├── test_users.py        # Profile update, account deletion tests
+│       ├── test_admin.py        # Admin access control tests
+│       ├── test_models.py       # Pydantic schema validation tests
+│       └── test_security.py     # JWT and password hashing tests
 │
 └── frontend/
-    ├── index.html            # Single HTML entry point
-    ├── vite.config.ts        # Vite dev-server + build config
+    ├── index.html               # Single HTML entry point (SPA)
+    ├── vite.config.ts           # Vite dev server and build configuration
+    │
     └── src/
-        ├── main.tsx          # React DOM root
-        ├── App.tsx           # Top-level layout (header, grid, skeleton, error state, modal)
-        ├── App.css           # Header, search dropdown, skeleton, overlay, grid styles
-        ├── index.css         # CSS custom properties (light + dark theme tokens), base typography
-        ├── constants.ts      # Shared API base URL
+        ├── main.tsx             # React DOM root, wraps app in AuthProvider and BrowserRouter
+        ├── App.tsx              # App shell: header, navigation, routing, auth modal trigger
+        ├── App.css              # Header, search dropdown, layout, skeleton, overlay styles
+        ├── index.css            # CSS custom properties (light/dark theme tokens), base typography
+        ├── constants.ts         # API base URL
+        │
+        ├── context/
+        │   └── AuthContext.tsx  # Shared auth state (token, user, login, logout, register)
+        │                        # Using React Context so all components share one auth instance
+        │
         ├── hooks/
-        │   ├── useSnippets.ts  # Snippet state + CRUD handlers with error rollback
-        │   ├── useSearch.ts    # Search state, debounce, keyboard navigation
-        │   └── useTheme.ts    # Dark mode toggle, localStorage persistence, system-preference fallback
+        │   ├── useAuth.ts       # Re-exports useAuthContext — consumed by every component
+        │   ├── useSnippets.ts   # Snippet list state, pagination, CRUD handlers, optimistic updates
+        │   ├── useCollections.ts# Collection list state, pagination, CRUD handlers
+        │   ├── useSearch.ts     # Search query state, 300ms debounce, keyboard navigation
+        │   ├── useLanguages.ts  # Fetches distinct language list for the filter bar
+        │   ├── useAdmin.ts      # Admin panel data (all users, all snippets)
+        │   ├── useTheme.ts      # Dark/light mode toggle, persisted in localStorage
+        │   └── useFocusTrap.ts  # Traps keyboard focus inside modals (accessibility)
+        │
         ├── components/
-        │   ├── CodeSnippet.tsx       # Snippet card (view + inline edit modes)
-        │   ├── CodeSnippet.css       # Card, code block, copy icon, footer, responsive styles
-        │   ├── SearchBar.tsx         # Search input + results dropdown
-        │   └── CreateSnippetModal.tsx # Overlay form for new snippets
+        │   ├── SnippetsPage.tsx          # Main snippets listing page (grid + filter + pagination)
+        │   ├── CollectionsPage.tsx       # Collections listing page
+        │   ├── CollectionPage.tsx        # Individual collection detail page with its snippets
+        │   ├── ProfilePage.tsx           # Public profile: another user's snippets and collections
+        │   ├── SettingsPage.tsx          # Account settings: update profile, change password, delete account
+        │   ├── AdminPanel.tsx            # Admin view: manage all users and snippets
+        │   ├── AdminPanel.css
+        │   ├── AuthModal.tsx             # Login / register modal with focus trap
+        │   ├── CodeSnippet.tsx           # Snippet card (view mode + inline edit mode)
+        │   ├── CodeSnippet.css
+        │   ├── CollectionCard.tsx        # Collection card with edit and visibility controls
+        │   ├── CollectionCard.css
+        │   ├── CollectionPage.css
+        │   ├── ProfilePage.css
+        │   ├── SearchBar.tsx             # Search input and live results dropdown
+        │   ├── CreateSnippetModal.tsx    # Modal form for creating a new snippet
+        │   ├── CreateCollectionModal.tsx # Modal form for creating a new collection
+        │   ├── AddToCollectionModal.tsx  # Modal for adding a snippet to one of the user's collections
+        │   ├── DeleteDialog.tsx          # Confirmation dialog for destructive actions
+        │   ├── LanguageFilter.tsx        # Scrollable chip bar for filtering by language
+        │   ├── LanguageFilter.css
+        │   ├── LanguageSelect.tsx        # Dropdown + free-text input for picking a language
+        │   ├── Pagination.tsx            # Page controls (prev/next/numbered)
+        │   ├── Pagination.css
+        │   ├── FormField.tsx             # Wrapper that pairs an input with its error message
+        │   └── Icons.tsx                 # SVG icon components
+        │
+        ├── types/
+        │   ├── snippet.ts       # Snippet TypeScript interface (shared across components and hooks)
+        │   └── collection.ts    # Collection TypeScript interface
+        │
         └── utils/
-            └── search.tsx    # highlight(), getCodeExcerpt(), escapeRegex()
+            ├── auth.ts          # localStorage helpers for token and user, authHeaders builder
+            ├── search.tsx       # highlight() — wraps matched text in <mark>, getCodeExcerpt()
+            └── author.ts        # Shared helper to format owner display name
 ```
 
-## Challenges Overcome
+## Workload
 
-One challenge was making the search dropdown behave correctly when a user clicked a result. I first used `onClick`, but the input lost focus and the dropdown could close before the click finished, so I changed the interaction to `onMouseDown` and kept a small blur delay to make result selection reliable. Another challenge was implementing keyboard shortcuts for the search bar, because Arrow keys, Enter, and Escape already have default browser behaviours inside inputs. I solved this by carefully handling the relevant key events and using `preventDefault()` only where needed, so keyboard navigation works smoothly without interfering with normal typing.
+This is an individual submission. All work was completed by **Shirley Yi**.
