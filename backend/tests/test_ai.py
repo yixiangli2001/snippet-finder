@@ -2,9 +2,14 @@ from openai import OpenAIError
 from fastapi.testclient import TestClient
 
 import routers.snippets as snippets_router
+import utils.rate_limit as rate_limit
 from main import app
 from models.ai import SnippetMetadata
 from tests.test_snippets import auth_header, use_fake_data
+
+
+def setup_function():
+    rate_limit._reset_state()
 
 
 def fake_analyze(result):
@@ -94,3 +99,23 @@ def test_analyze_provider_error_returns_502(monkeypatch):
     )
 
     assert response.status_code == 502
+
+
+def test_analyze_returns_429_when_user_rate_limited(monkeypatch):
+    alice, _, _, _ = use_fake_data(monkeypatch)
+    metadata = SnippetMetadata(
+        title="Print greeting",
+        language="PYTHON",
+        description="Prints a greeting to standard output.",
+        tags=["print"],
+    )
+    monkeypatch.setattr(snippets_router, "analyze_snippet", fake_analyze(metadata))
+    monkeypatch.setattr(rate_limit, "PER_USER_LIMIT", 1)
+    client = TestClient(app)
+    headers = auth_header(alice)
+
+    first = client.post("/snippets/analyze", json={"code": "print('hi')"}, headers=headers)
+    second = client.post("/snippets/analyze", json={"code": "print('hi')"}, headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 429
