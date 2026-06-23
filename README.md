@@ -36,7 +36,14 @@ Create a `.env` file in `backend/`:
 ```
 MONGO_URL=<your MongoDB connection string>
 JWT_SECRET=<any long random string>
+OPENAI_API_KEY=<your OpenAI API key>   # optional — only needed for AI auto-fill
 ```
+
+> `OPENAI_API_KEY` powers the **"Auto-fill from code"** button in the New Snippet
+> dialog: it sends the pasted code to OpenAI and fills in the title, language,
+> description, and tags for you to review. Get a key at
+> [platform.openai.com](https://platform.openai.com). The rest of the app runs
+> fine without it.
 
 Start the server:
 
