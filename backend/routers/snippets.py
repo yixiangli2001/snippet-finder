@@ -9,6 +9,7 @@ from models.ai import SnippetAnalyzeRequest, SnippetMetadata
 from models.snippet import SnippetCreate, SnippetUpdate, SnippetResponse, SnippetListResponse
 from models.user import UserInDB
 from utils.ai import analyze_snippet
+from utils.rate_limit import enforce_analyze_rate_limit
 from utils.security import get_current_user, get_optional_user
 from utils.user_lookup import build_username_map, get_owner_username
 
@@ -159,6 +160,7 @@ async def analyze(
     spend it. The result is returned for the user to review and edit before
     saving; it is never persisted here.
     """
+    enforce_analyze_rate_limit(current_user.id)
     try:
         return await analyze_snippet(payload.code)
     except RuntimeError as exc:
