@@ -1,11 +1,14 @@
 from bson import ObjectId
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
+from openai import OpenAIError
 import re
 
 from database import collections_collection, snippets_collection
+from models.ai import SnippetAnalyzeRequest, SnippetMetadata
 from models.snippet import SnippetCreate, SnippetUpdate, SnippetResponse, SnippetListResponse
 from models.user import UserInDB
+from utils.ai import analyze_snippet
 from utils.security import get_current_user, get_optional_user
 from utils.user_lookup import build_username_map, get_owner_username
 
@@ -143,6 +146,27 @@ async def get_languages(
         }
     languages = await snippets_collection.distinct("language", query)
     return sorted(languages)
+
+
+@router.post("/analyze", response_model=SnippetMetadata)
+async def analyze(
+    payload: SnippetAnalyzeRequest,
+    current_user: UserInDB = Depends(get_current_user),
+):
+    """Use the LLM to extract title/language/description/tags from pasted code.
+
+    Auth is required because each call costs money — only logged-in users can
+    spend it. The result is returned for the user to review and edit before
+    saving; it is never persisted here.
+    """
+    try:
+        return await analyze_snippet(payload.code)
+    except RuntimeError as exc:
+        # No API key configured, or the model returned nothing usable.
+        raise HTTPException(status_code=503, detail=str(exc))
+    except OpenAIError:
+        # Network/quota/provider errors — let the user fall back to manual entry.
+        raise HTTPException(status_code=502, detail="AI service is temporarily unavailable")
 
 
 @router.get("/{snippet_id}", response_model=SnippetResponse)
