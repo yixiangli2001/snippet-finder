@@ -1,6 +1,18 @@
 # Snippet Finder
 
-A single-page web application where developers can save, organise, and share code snippets. Users can create an account, store snippets with titles, descriptions, language tags, and keywords, group them into collections, and search across everything in real time. Any snippet can be copied to the clipboard in one click. Snippets can be kept private or made public for others to browse.
+A full-stack app for saving, organizing, and searching code snippets — with an AI-assisted entry mode that auto-fills metadata from pasted code.
+
+**[Live demo →](https://snippet-finder-lja6.vercel.app/)**
+
+Create an account, save snippets with titles, descriptions, language, and tags, group them into collections, and search across everything in real time. Snippets can be kept private or shared publicly. Copy any snippet to the clipboard in one click.
+
+## Highlights
+
+- **AI-assisted snippet entry** — paste code into a separate "AI" tab and OpenAI (structured outputs, schema-validated via Pydantic) fills in the title, language, description, and tags for review before saving. Nothing is auto-saved; the model never touches anything but the form fields.
+- **Abuse-resistant by design** — the AI endpoint sits behind auth, a per-user sliding-window rate limit, and a global daily cap (closing the "just register another account" bypass), backed by a hard monthly budget cap on the OpenAI account itself.
+- **Real auth & access control** — JWT sessions, bcrypt password hashing, ownership and visibility rules enforced on the backend (private-by-default snippets, admin override, public-on-deletion handling for orphaned content).
+- **Deployed full-stack on free infrastructure** — React/Vite on Vercel, FastAPI on Render, MongoDB Atlas — wired together with environment-based config (CORS, API base URL) so the same codebase runs locally or in production with no code changes.
+- **Tested**: 130+ pytest tests covering auth, ownership, visibility, admin access, and the AI endpoint (mocked OpenAI calls, no real API spend in CI), built test-first (red → green commits).
 
 ## Tech Stack
 
@@ -10,11 +22,13 @@ A single-page web application where developers can save, organise, and share cod
 | **Styling** | Plain CSS with CSS custom properties, light/dark theme |
 | **Backend** | Python 3.11, FastAPI |
 | **Database** | MongoDB (Motor async driver) |
+| **AI** | OpenAI API (`gpt-4o-mini`, structured outputs) |
 | **Auth** | JWT (python-jose), bcrypt password hashing (passlib) |
 | **Data validation** | Pydantic v2 |
 | **Tests** | pytest, pytest-asyncio |
+| **Deployment** | Vercel (frontend), Render (backend), MongoDB Atlas (database) |
 
-## How to Run
+## Getting Started
 
 ### Prerequisites
 
@@ -35,15 +49,14 @@ Create a `.env` file in `backend/`:
 
 ```
 MONGO_URL=<your MongoDB connection string>
-JWT_SECRET=<any long random string>
+SECRET_KEY=<any long random string, 32+ characters>
 OPENAI_API_KEY=<your OpenAI API key>   # optional — only needed for AI auto-fill
 ```
 
-> `OPENAI_API_KEY` powers the **"Auto-fill from code"** button in the New Snippet
-> dialog: it sends the pasted code to OpenAI and fills in the title, language,
-> description, and tags for you to review. Get a key at
-> [platform.openai.com](https://platform.openai.com). The rest of the app runs
-> fine without it.
+> `OPENAI_API_KEY` powers the **AI tab** in the New Snippet dialog: paste code,
+> click Generate, and it fills in title, language, description, and tags for
+> you to review. Get a key at [platform.openai.com](https://platform.openai.com).
+> The rest of the app runs fine without it.
 
 Start the server:
 
@@ -70,108 +83,29 @@ cd backend
 pytest
 ```
 
-## Folder Structure
+### Deploying your own copy
+
+- **Backend → Render**: connect this repo, use the included [`render.yaml`](render.yaml) blueprint (New → Blueprint). Set `MONGO_URL`, `SECRET_KEY`, `OPENAI_API_KEY`, and `CORS_ORIGINS` (your deployed frontend origin) in the Render dashboard.
+- **Frontend → Vercel**: import this repo with root directory `frontend`, set `VITE_API_URL` to your Render backend URL. [`vercel.json`](frontend/vercel.json) handles the SPA fallback rewrite so client-side routes survive a page refresh.
+
+## Project Structure
 
 ```
 snippet-finder/
-│
 ├── backend/
-│   ├── main.py                  # FastAPI app entry point, CORS configuration
-│   ├── database.py              # Motor client, MongoDB collection references
-│   ├── conftest.py              # pytest fixtures (test DB setup, auth helpers)
-│   ├── import_snippets.py       # Utility script to seed sample data
-│   ├── requirements.txt         # Python dependencies
-│   │
-│   ├── models/
-│   │   ├── snippet.py           # Pydantic schemas for snippet (Create, Update, Response)
-│   │   ├── collection.py        # Pydantic schemas for collection
-│   │   └── user.py              # Pydantic schemas for user and auth tokens
-│   │
-│   ├── routers/
-│   │   ├── snippets.py          # Snippet CRUD + visibility toggle + copy counter
-│   │   ├── collections.py       # Collection CRUD + add/remove snippets
-│   │   ├── auth.py              # Register and login endpoints, JWT issuance
-│   │   ├── users.py             # Profile read, update username/email/password, delete account
-│   │   └── admin.py             # Admin-only routes: list all users and snippets, force delete
-│   │
-│   ├── utils/
-│   │   ├── security.py          # JWT creation and verification, auth dependencies
-│   │   ├── password_rules.py    # Password validation (length, complexity)
-│   │   └── user_lookup.py       # Shared helper to resolve owner_id to username
-│   │
-│   └── tests/
-│       ├── fakes.py             # In-memory fake collections for unit tests
-│       ├── test_auth.py         # Register, login, token validation tests
-│       ├── test_snippets.py     # Snippet CRUD, visibility, ownership tests
-│       ├── test_collections.py  # Collection CRUD, snippet membership tests
-│       ├── test_users.py        # Profile update, account deletion tests
-│       ├── test_admin.py        # Admin access control tests
-│       ├── test_models.py       # Pydantic schema validation tests
-│       └── test_security.py     # JWT and password hashing tests
+│   ├── main.py              # FastAPI app entry point, CORS configuration
+│   ├── database.py          # Motor client, MongoDB collection references
+│   ├── models/               # Pydantic schemas (snippet, collection, user, AI metadata)
+│   ├── routers/              # snippets, collections, auth, users, admin — one router per resource
+│   ├── utils/                 # JWT/auth, password rules, AI client, rate limiting
+│   └── tests/                 # pytest suite, one file per router/module
 │
 └── frontend/
-    ├── index.html               # Single HTML entry point (SPA)
-    ├── vite.config.ts           # Vite dev server and build configuration
-    │
     └── src/
-        ├── main.tsx             # React DOM root, wraps app in AuthProvider and BrowserRouter
-        ├── App.tsx              # App shell: header, navigation, routing, auth modal trigger
-        ├── App.css              # Header, search dropdown, layout, skeleton, overlay styles
-        ├── index.css            # CSS custom properties (light/dark theme tokens), base typography
-        ├── constants.ts         # API base URL
-        │
-        ├── context/
-        │   └── AuthContext.tsx  # Shared auth state (token, user, login, logout, register)
-        │                        # Using React Context so all components share one auth instance
-        │
-        ├── hooks/
-        │   ├── useAuth.ts       # Re-exports useAuthContext — consumed by every component
-        │   ├── useSnippets.ts   # Snippet list state, pagination, CRUD handlers, optimistic updates
-        │   ├── useCollections.ts# Collection list state, pagination, CRUD handlers
-        │   ├── useSearch.ts     # Search query state, 300ms debounce, keyboard navigation
-        │   ├── useLanguages.ts  # Fetches distinct language list for the filter bar
-        │   ├── useAdmin.ts      # Admin panel data (all users, all snippets)
-        │   ├── useTheme.ts      # Dark/light mode toggle, persisted in localStorage
-        │   └── useFocusTrap.ts  # Traps keyboard focus inside modals (accessibility)
-        │
-        ├── components/
-        │   ├── SnippetsPage.tsx          # Main snippets listing page (grid + filter + pagination)
-        │   ├── CollectionsPage.tsx       # Collections listing page
-        │   ├── CollectionPage.tsx        # Individual collection detail page with its snippets
-        │   ├── ProfilePage.tsx           # Public profile: another user's snippets and collections
-        │   ├── SettingsPage.tsx          # Account settings: update profile, change password, delete account
-        │   ├── AdminPanel.tsx            # Admin view: manage all users and snippets
-        │   ├── AdminPanel.css
-        │   ├── AuthModal.tsx             # Login / register modal with focus trap
-        │   ├── CodeSnippet.tsx           # Snippet card (view mode + inline edit mode)
-        │   ├── CodeSnippet.css
-        │   ├── CollectionCard.tsx        # Collection card with edit and visibility controls
-        │   ├── CollectionCard.css
-        │   ├── CollectionPage.css
-        │   ├── ProfilePage.css
-        │   ├── SearchBar.tsx             # Search input and live results dropdown
-        │   ├── CreateSnippetModal.tsx    # Modal form for creating a new snippet
-        │   ├── CreateCollectionModal.tsx # Modal form for creating a new collection
-        │   ├── AddToCollectionModal.tsx  # Modal for adding a snippet to one of the user's collections
-        │   ├── DeleteDialog.tsx          # Confirmation dialog for destructive actions
-        │   ├── LanguageFilter.tsx        # Scrollable chip bar for filtering by language
-        │   ├── LanguageFilter.css
-        │   ├── LanguageSelect.tsx        # Dropdown + free-text input for picking a language
-        │   ├── Pagination.tsx            # Page controls (prev/next/numbered)
-        │   ├── Pagination.css
-        │   ├── FormField.tsx             # Wrapper that pairs an input with its error message
-        │   └── Icons.tsx                 # SVG icon components
-        │
-        ├── types/
-        │   ├── snippet.ts       # Snippet TypeScript interface (shared across components and hooks)
-        │   └── collection.ts    # Collection TypeScript interface
-        │
-        └── utils/
-            ├── auth.ts          # localStorage helpers for token and user, authHeaders builder
-            ├── search.tsx       # highlight() — wraps matched text in <mark>, getCodeExcerpt()
-            └── author.ts        # Shared helper to format owner display name
+        ├── App.tsx            # App shell: header, navigation, routing
+        ├── context/           # Shared auth state (AuthContext)
+        ├── hooks/             # Snippets, collections, search, theme, admin data
+        ├── components/        # Pages, modals, cards, and form controls
+        ├── types/             # Shared TypeScript interfaces
+        └── utils/              # Auth token helpers, search highlighting
 ```
-
-## Workload
-
-This is an individual submission. All work was completed by **Shirley Yi**.
