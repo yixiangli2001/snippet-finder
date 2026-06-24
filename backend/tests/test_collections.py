@@ -352,6 +352,45 @@ def test_owner_sees_own_private_collections_via_profile_filter(monkeypatch):
     assert names == {"My public", "My private"}
 
 
+def test_owner_can_filter_their_collections_to_private_only(monkeypatch):
+    users, col_collection, _, client = setup(monkeypatch)
+    token = register_and_login(client)
+    user_id = users.documents[0]["_id"]
+
+    col_collection.documents.extend([
+        {"_id": ObjectId(), "owner_id": user_id, "name": "My public", "is_public": True,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+        {"_id": ObjectId(), "owner_id": user_id, "name": "My private", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+    ])
+
+    response = client.get(
+        f"/collections/?owner_id={user_id}&is_public=false",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    names = [c["name"] for c in response.json()["items"]]
+    assert names == ["My private"]
+
+
+def test_public_collection_filter_does_not_leak_private_collections(monkeypatch):
+    users, col_collection, _, client = setup(monkeypatch)
+    token = register_and_login(client)
+    other_id = ObjectId()
+
+    col_collection.documents.append(
+        {"_id": ObjectId(), "owner_id": other_id, "name": "Their private", "is_public": False,
+         "snippet_ids": [], "description": None, "created_at": "2026-01-01", "updated_at": "2026-01-01"},
+    )
+
+    response = client.get(
+        f"/collections/?owner_id={other_id}&is_public=false",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.json()["items"] == []
+
+
 def test_admin_sees_private_collections_via_profile_filter(monkeypatch):
     users, col_collection, _, client = setup(monkeypatch)
 

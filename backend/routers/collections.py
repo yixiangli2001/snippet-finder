@@ -59,6 +59,7 @@ async def contains_private_snippets(col: dict) -> bool:
 @router.get("/", response_model=CollectionListResponse)
 async def get_collections(
     owner_id: str | None = None,
+    is_public: bool | None = None,
     skip: int = 0,
     limit: int = 20,
     current_user: UserInDB | None = Depends(get_optional_user),
@@ -83,6 +84,12 @@ async def get_collections(
     else:
         # Not logged in: show only public collections.
         query = {"is_public": True}
+
+    # Optional visibility filter ("Public" / "Private" toggle). Combined with the
+    # rules above, so a request for someone else's private collections returns nothing.
+    if is_public is not None:
+        query = {"$and": [query, {"is_public": is_public}]}
+
     total = await collections_collection.count_documents(query)
     cols = await collections_collection.find(query).sort("created_at", -1).skip(skip).to_list(limit)
     username_map = await build_username_map(cols)

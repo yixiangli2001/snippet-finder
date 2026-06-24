@@ -280,6 +280,56 @@ def test_admin_sees_private_snippets_via_profile_filter(monkeypatch):
     assert titles == {"alice public", "alice private"}
 
 
+def test_owner_can_filter_their_list_to_private_only(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    alice_public = snippet("alice public", owner_id=alice["_id"], is_public=True)
+    alice_private = snippet("alice private", owner_id=alice["_id"], is_public=False)
+    use_fake_data(monkeypatch, [alice_public, alice_private], [alice, bob])
+    client = TestClient(app)
+
+    response = client.get(
+        f"/snippets/?owner_id={alice['_id']}&is_public=false",
+        headers=auth_header(alice),
+    )
+
+    assert response.status_code == 200
+    titles = [s["title"] for s in response.json()["items"]]
+    assert titles == ["alice private"]
+
+
+def test_public_filter_excludes_own_private_snippets(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    alice_private = snippet("alice private", owner_id=alice["_id"], is_public=False)
+    alice_public = snippet("alice public", owner_id=alice["_id"], is_public=True)
+    bob_public = snippet("bob public", owner_id=bob["_id"], is_public=True)
+    use_fake_data(monkeypatch, [alice_private, alice_public, bob_public], [alice, bob])
+    client = TestClient(app)
+
+    response = client.get("/snippets/?is_public=true", headers=auth_header(alice))
+
+    assert response.status_code == 200
+    titles = {s["title"] for s in response.json()["items"]}
+    assert titles == {"alice public", "bob public"}
+
+
+def test_private_filter_does_not_leak_other_users_private_snippets(monkeypatch):
+    alice = make_user("alice@example.com", "alice")
+    bob = make_user("bob@example.com", "bob")
+    bob_private = snippet("bob private", owner_id=bob["_id"], is_public=False)
+    use_fake_data(monkeypatch, [bob_private], [alice, bob])
+    client = TestClient(app)
+
+    response = client.get(
+        f"/snippets/?owner_id={bob['_id']}&is_public=false",
+        headers=auth_header(alice),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["items"] == []
+
+
 def test_owner_id_filter_rejects_invalid_owner_id(monkeypatch):
     use_fake_data(monkeypatch)
     client = TestClient(app)
