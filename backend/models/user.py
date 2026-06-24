@@ -89,12 +89,6 @@ class ResetPasswordRequest(BaseModel):
         return _validate_new_password(password)
 
 
-class ForgotPasswordRequest(BaseModel):
-    """Input model for requesting a password reset email."""
-
-    email: EmailStr
-
-
 class UserResponse(BaseModel):
     """API response model. Safe to send to clients — contains no password data."""
 

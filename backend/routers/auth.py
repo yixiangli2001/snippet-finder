@@ -7,9 +7,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 
 from database import users_collection
-from models.user import UserCreate, UserResponse
-from utils.auth_tokens import VERIFY_EMAIL_TTL, consume_auth_token, create_auth_token
-from utils.email import send_verification_email
+from models.user import ResetPasswordRequest, UserCreate, UserResponse
+from utils.auth_tokens import RESET_PASSWORD_TTL, VERIFY_EMAIL_TTL, consume_auth_token, create_auth_token
+from utils.email import send_reset_email, send_verification_email
 from utils.security import create_token, hash_password, verify_password
 
 router = APIRouter()
@@ -27,6 +27,10 @@ class VerifyEmailRequest(BaseModel):
 
 
 class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 
@@ -104,3 +108,28 @@ async def resend_verification(body: ResendVerificationRequest):
         await _send_verification_link(str(user["_id"]), body.email)
 
     return {"message": "If an account with that email exists and is unverified, we've sent a new link"}
+
+
+@router.post("/forgot-password")
+async def forgot_password(body: ForgotPasswordRequest):
+    # Always return the same response whether or not the email exists —
+    # otherwise this endpoint becomes an account-enumeration tool.
+    user = await users_collection.find_one({"email": body.email})
+    if user:
+        token = await create_auth_token(str(user["_id"]), "reset_password", RESET_PASSWORD_TTL)
+        send_reset_email(body.email, f"{FRONTEND_URL}/reset-password?token={token}")
+
+    return {"message": "If an account with that email exists, we've sent a password reset link"}
+
+
+@router.post("/reset-password")
+async def reset_password(body: ResetPasswordRequest):
+    user_id = await consume_auth_token(body.token, "reset_password")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset link")
+
+    await users_collection.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"password_hash": hash_password(body.new_password)}},
+    )
+    return {"message": "Password updated"}
