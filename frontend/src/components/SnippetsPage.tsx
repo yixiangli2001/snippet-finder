@@ -54,6 +54,13 @@ export default function SnippetsPage() {
     );
   }
 
+  // Tailor the empty message to the active filters so it explains *why* the list is empty.
+  const emptyMessage = scope === 'mine'
+    ? visibility === 'private' ? 'You have no private snippets.'
+    : visibility === 'public' ? 'You have no public snippets.'
+    : 'You have no snippets yet.'
+    : 'No snippets found.';
+
   return (
     <>
       {/* Toolbar: scope/visibility + language filters on the left, Add button on the right */}
@@ -94,22 +101,26 @@ export default function SnippetsPage() {
         )}
       </div>
 
-      <div className="snippet-grid">
-        {snippets.map(snippet => (
-          <CodeSnippet
-            key={snippet.id}
-            snippet={snippet}
-            token={token || undefined}
-            currentUserId={user?.id || null}
-            canEdit={Boolean(user && (snippet.owner_id === user.id || user.role === 'admin'))}
-            onCopy={handleCopy}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-            onToggleVisibility={handleToggleVisibility}
-            onCollectionChanged={() => {}}
-          />
-        ))}
-      </div>
+      {snippets.length === 0 ? (
+        <p className="list-empty">{emptyMessage}</p>
+      ) : (
+        <div className="snippet-grid">
+          {snippets.map(snippet => (
+            <CodeSnippet
+              key={snippet.id}
+              snippet={snippet}
+              token={token || undefined}
+              currentUserId={user?.id || null}
+              canEdit={Boolean(user && (snippet.owner_id === user.id || user.role === 'admin'))}
+              onCopy={handleCopy}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              onToggleVisibility={handleToggleVisibility}
+              onCollectionChanged={() => {}}
+            />
+          ))}
+        </div>
+      )}
 
       <Pagination page={page} total={total} perPage={limit} onChange={setPage} />
 

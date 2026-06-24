@@ -975,6 +975,15 @@
   min-width: 0;
 }
 
+/* Shown in place of the grid when a list (or filtered list) is empty */
+.list-empty {
+  font-size: 14px;
+  color: var(--text);
+  padding: 32px 24px;
+  margin: 0;
+  text-align: center;
+}
+
 /* ── Segmented control (All / Mine · All / Public / Private) ─ */
 .segmented {
   display: inline-flex;
