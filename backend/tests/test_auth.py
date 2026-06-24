@@ -16,14 +16,19 @@ async def _not_breached(password: str) -> bool:
     return False
 
 
+async def _turnstile_passes(token: str, remote_ip: str | None = None) -> bool:
+    return True
+
+
 def use_fake_users(monkeypatch):
     users = FakeCollection()
     monkeypatch.setattr(auth_router, "users_collection", users)
     monkeypatch.setattr(security, "users_collection", users)
     monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
-    # Default to "not breached" so tests don't depend on network access;
-    # tests that exercise the breach check override this explicitly.
+    # Default to "not breached" / "captcha passed" so tests don't depend on
+    # network access; tests exercising these checks override them explicitly.
     monkeypatch.setattr(auth_router, "is_password_breached", _not_breached)
+    monkeypatch.setattr(auth_router, "verify_turnstile_token", _turnstile_passes)
     return users
 
 
@@ -430,3 +435,44 @@ def test_reset_password_rejects_a_breached_new_password(monkeypatch):
 
 async def _async_true() -> bool:
     return True
+
+
+async def _async_false() -> bool:
+    return False
+
+
+# ── Turnstile bot protection ──────────────────────────────────────
+
+
+def test_register_rejects_failed_turnstile_check(monkeypatch):
+    use_fake_users(monkeypatch)
+    spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    monkeypatch.setattr(auth_router, "verify_turnstile_token", lambda token, remote_ip=None: _async_false())
+
+    response = register(client, password="securepass2")
+
+    assert response.status_code == 400
+
+
+def test_register_allows_a_passed_turnstile_check(monkeypatch):
+    use_fake_users(monkeypatch)
+    spy_on_emails(monkeypatch)
+    client = TestClient(app)
+
+    response = register(client, password="securepass2")
+
+    assert response.status_code == 200
+
+
+def test_forgot_password_rejects_failed_turnstile_check(monkeypatch):
+    users = use_fake_users(monkeypatch)
+    spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    register(client)
+    verify_user(monkeypatch, users, "alice@example.com")
+    monkeypatch.setattr(auth_router, "verify_turnstile_token", lambda token, remote_ip=None: _async_false())
+
+    response = client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+
+    assert response.status_code == 400

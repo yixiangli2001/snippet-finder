@@ -38,6 +38,7 @@ class ResendVerificationRequest(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
+    turnstile_token: str = ""
 
 
 def format_user(user: dict) -> dict:

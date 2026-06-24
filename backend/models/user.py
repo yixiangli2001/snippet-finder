@@ -12,6 +12,10 @@ class UserCreate(BaseModel):
     email: EmailStr
     username: str
     password: str
+    # Defaults to "" so existing direct constructions of this model (e.g. in
+    # tests) don't need to know about Turnstile — the register route is what
+    # actually requires and verifies a real token.
+    turnstile_token: str = ""
 
     @field_validator("username")
     @classmethod
