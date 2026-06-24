@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { API } from '../constants';
-import { type Snippet } from '../components/CodeSnippet';
+import { type Snippet } from '../types/snippet';
 import { authHeaders } from '../utils/auth';
 
 const LIMIT = 9;

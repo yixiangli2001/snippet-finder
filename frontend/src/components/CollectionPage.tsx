@@ -5,7 +5,7 @@ import { API } from '../constants';
 import { authHeaders, type User } from '../utils/auth';
 import { Link } from 'react-router-dom';
 import { type Collection } from '../types/collection';
-import { type Snippet } from './CodeSnippet';
+import { type Snippet } from '../types/snippet';
 import CodeSnippet from './CodeSnippet';
 
 interface Props {

@@ -1,4 +1,4 @@
-import { type Snippet } from './CodeSnippet';
+import { type Snippet } from '../types/snippet';
 import { highlight, getCodeExcerpt } from '../utils/search';
 
 interface Props {
@@ -59,7 +59,7 @@ export default function SearchBar({
                 <span className="search-result-title">{highlight(s.title, query)}</span>
                 {s.tags.length > 0 && (
                   <span className="search-result-tags">
-                    {s.tags.slice(0, 3).map((t) => (
+                    {s.tags.slice(0, 3).map((t: string) => (
                       <span key={t} className="search-result-tag">{highlight(t, query)}</span>
                     ))}
                   </span>

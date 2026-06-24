@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { API } from '../constants';
-import { type Snippet } from './CodeSnippet';
+import { type Snippet } from '../types/snippet';
 import { FormField } from './FormField';
 import { LanguageSelect } from './LanguageSelect';
 import { authHeaders } from '../utils/auth';

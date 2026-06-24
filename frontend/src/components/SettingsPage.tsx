@@ -5,7 +5,7 @@ import { AlertIcon, SaveIcon, ShieldIcon, UserIcon } from './Icons';
 import './CollectionPage.css'; /* for .collection-page-header and .collection-page-back */
 
 export default function SettingsPage() {
-  const { user, token, updateProfile, updatePassword, deleteAccount } = useAuth();
+  const { user, updateProfile, updatePassword, deleteAccount } = useAuth();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState(user?.username ?? '');
