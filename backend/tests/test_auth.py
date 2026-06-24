@@ -27,6 +27,10 @@ def spy_on_emails(monkeypatch):
         auth_router, "send_verification_email",
         lambda to, link: sent["verification"].append({"to": to, "link": link}),
     )
+    monkeypatch.setattr(
+        auth_router, "send_reset_email",
+        lambda to, link: sent["reset"].append({"to": to, "link": link}),
+    )
     return sent
 
 
@@ -240,3 +244,97 @@ def test_resend_verification_does_not_email_an_already_verified_user(monkeypatch
 
     assert response.status_code == 200
     assert len(sent["verification"]) == 0
+
+
+# ── POST /auth/forgot-password ───────────────────────────────────
+
+
+def test_forgot_password_sends_reset_link_for_existing_user(monkeypatch):
+    users = use_fake_users(monkeypatch)
+    sent = spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    register(client)
+    verify_user(monkeypatch, users, "alice@example.com")
+
+    response = client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+
+    assert response.status_code == 200
+    assert len(sent["reset"]) == 1
+    assert sent["reset"][0]["to"] == "alice@example.com"
+    assert "token=" in sent["reset"][0]["link"]
+
+
+def test_forgot_password_is_generic_for_unknown_email(monkeypatch):
+    """Same response whether or not the email exists, so the endpoint can't
+    be used to discover which addresses are registered."""
+    users = use_fake_users(monkeypatch)
+    sent = spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    register(client)
+    verify_user(monkeypatch, users, "alice@example.com")
+
+    known = client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+    unknown = client.post("/auth/forgot-password", json={"email": "nobody@example.com"})
+
+    assert known.status_code == unknown.status_code == 200
+    assert known.json() == unknown.json()
+    assert len(sent["reset"]) == 1  # only the real account got an email
+
+
+# ── POST /auth/reset-password ─────────────────────────────────────
+
+
+def test_reset_password_with_valid_token_changes_password(monkeypatch):
+    users = use_fake_users(monkeypatch)
+    sent = spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    register(client)
+    verify_user(monkeypatch, users, "alice@example.com")
+    client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+    token = sent["reset"][0]["link"].split("token=")[1]
+
+    response = client.post("/auth/reset-password", json={"token": token, "new_password": "newsecurepass"})
+
+    assert response.status_code == 200
+    old_login = client.post("/auth/login", json={"email": "alice@example.com", "password": "securepass"})
+    new_login = client.post("/auth/login", json={"email": "alice@example.com", "password": "newsecurepass"})
+    assert old_login.status_code == 401
+    assert new_login.status_code == 200
+
+
+def test_reset_password_token_is_single_use(monkeypatch):
+    users = use_fake_users(monkeypatch)
+    sent = spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    register(client)
+    verify_user(monkeypatch, users, "alice@example.com")
+    client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+    token = sent["reset"][0]["link"].split("token=")[1]
+    client.post("/auth/reset-password", json={"token": token, "new_password": "newsecurepass"})
+
+    second_attempt = client.post("/auth/reset-password", json={"token": token, "new_password": "anotherpass"})
+
+    assert second_attempt.status_code == 400
+
+
+def test_reset_password_rejects_unknown_token(monkeypatch):
+    use_fake_users(monkeypatch)
+    client = TestClient(app)
+
+    response = client.post("/auth/reset-password", json={"token": "not-a-real-token", "new_password": "newsecurepass"})
+
+    assert response.status_code == 400
+
+
+def test_reset_password_rejects_too_short_new_password(monkeypatch):
+    users = use_fake_users(monkeypatch)
+    sent = spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    register(client)
+    verify_user(monkeypatch, users, "alice@example.com")
+    client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+    token = sent["reset"][0]["link"].split("token=")[1]
+
+    response = client.post("/auth/reset-password", json={"token": token, "new_password": "short"})
+
+    assert response.status_code == 422

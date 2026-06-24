@@ -54,6 +54,17 @@ class UpdateEmail(BaseModel):
     email: EmailStr
 
 
+def _validate_new_password(password: str) -> str:
+    stripped_password = password.strip()
+    if not stripped_password:
+        raise ValueError("password must not be empty")
+    if len(stripped_password) < MIN_PASSWORD_CHARACTERS:
+        raise ValueError(f"password must be at least {MIN_PASSWORD_CHARACTERS} characters")
+    if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+        raise ValueError(f"password must be at most {MAX_BCRYPT_PASSWORD_BYTES} bytes")
+    return password
+
+
 class UpdatePassword(BaseModel):
     """Input model for changing the current user's password."""
 
@@ -63,14 +74,25 @@ class UpdatePassword(BaseModel):
     @field_validator("new_password")
     @classmethod
     def new_password_must_be_useful(cls, password: str) -> str:
-        stripped_password = password.strip()
-        if not stripped_password:
-            raise ValueError("password must not be empty")
-        if len(stripped_password) < MIN_PASSWORD_CHARACTERS:
-            raise ValueError(f"password must be at least {MIN_PASSWORD_CHARACTERS} characters")
-        if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
-            raise ValueError(f"password must be at most {MAX_BCRYPT_PASSWORD_BYTES} bytes")
-        return password
+        return _validate_new_password(password)
+
+
+class ResetPasswordRequest(BaseModel):
+    """Input model for completing a password reset via emailed token."""
+
+    token: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def new_password_must_be_useful(cls, password: str) -> str:
+        return _validate_new_password(password)
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Input model for requesting a password reset email."""
+
+    email: EmailStr
 
 
 class UserResponse(BaseModel):
