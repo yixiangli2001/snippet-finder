@@ -80,6 +80,9 @@ class UserResponse(BaseModel):
     email: str
     username: str
     role: str = "user"
+    # Default True covers legacy accounts created before email verification
+    # shipped — they never had a chance to verify, so they aren't punished.
+    is_verified: bool = True
     created_at: datetime
     updated_at: datetime
 
@@ -101,6 +104,7 @@ class UserInDB(BaseModel):
     username: str
     password_hash: str
     role: str = "user"
+    is_verified: bool = True
     created_at: datetime
     updated_at: datetime
 

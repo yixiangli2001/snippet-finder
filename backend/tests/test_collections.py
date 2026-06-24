@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 import routers.auth as auth_router
 import routers.collections as collections_router
+import utils.auth_tokens as auth_tokens
 import utils.security as security
 import utils.user_lookup as user_lookup
 from main import app
@@ -20,6 +21,7 @@ def setup(monkeypatch, collections=None, snippets=None):
     monkeypatch.setattr(collections_router, "collections_collection", col_collection)
     monkeypatch.setattr(collections_router, "snippets_collection", snippet_collection)
     monkeypatch.setattr(user_lookup, "users_collection", users)
+    monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
 
     client = TestClient(app)
     return users, col_collection, snippet_collection, client
@@ -30,6 +32,11 @@ def register_and_login(client, email="alice@example.com", username="alice"):
         "/auth/register",
         json={"email": email, "username": username, "password": "securepass"},
     )
+    # Registration leaves the account unverified; these tests are about other
+    # behavior, so mark it verified directly rather than going through email.
+    for user in auth_router.users_collection.documents:
+        if user["email"] == email:
+            user["is_verified"] = True
     login = client.post("/auth/login", json={"email": email, "password": "securepass"})
     return login.json()["access_token"]
 

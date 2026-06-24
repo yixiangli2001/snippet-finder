@@ -1,14 +1,20 @@
+import os
 import re
 from datetime import datetime, timezone
 
+from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 
 from database import users_collection
 from models.user import UserCreate, UserResponse
+from utils.auth_tokens import VERIFY_EMAIL_TTL, consume_auth_token, create_auth_token
+from utils.email import send_verification_email
 from utils.security import create_token, hash_password, verify_password
 
 router = APIRouter()
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 
 class LoginRequest(BaseModel):
@@ -16,10 +22,25 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
 def format_user(user: dict) -> dict:
     formatted = {**user, "id": str(user["_id"])}
     del formatted["_id"]
+    # Legacy accounts predate this field — treat them as already verified.
+    formatted.setdefault("is_verified", True)
     return formatted
+
+
+async def _send_verification_link(user_id: str, email: str) -> None:
+    token = await create_auth_token(user_id, "verify_email", VERIFY_EMAIL_TTL)
+    send_verification_email(email, f"{FRONTEND_URL}/verify-email?token={token}")
 
 
 @router.post("/register", response_model=UserResponse)
@@ -39,12 +60,16 @@ async def register(user: UserCreate):
         "username": user.username,
         "password_hash": hash_password(user.password),
         "role": "user",
+        "is_verified": False,
         "created_at": now,
         "updated_at": now,
     }
 
     result = await users_collection.insert_one(data)
     created = await users_collection.find_one({"_id": result.inserted_id})
+
+    await _send_verification_link(str(result.inserted_id), user.email)
+
     return format_user(created)
 
 
@@ -53,6 +78,29 @@ async def login(credentials: LoginRequest):
     user = await users_collection.find_one({"email": credentials.email})
     if not user or not verify_password(credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not user.get("is_verified", True):
+        raise HTTPException(status_code=403, detail="Please verify your email before logging in")
 
     token = create_token(str(user["_id"]), user.get("role", "user"))
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.post("/verify-email")
+async def verify_email(body: VerifyEmailRequest):
+    user_id = await consume_auth_token(body.token, "verify_email")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification link")
+
+    await users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": {"is_verified": True}})
+    return {"message": "Email verified"}
+
+
+@router.post("/resend-verification")
+async def resend_verification(body: ResendVerificationRequest):
+    # Always return the same response, whether or not the email exists or is
+    # already verified — otherwise this endpoint becomes an account-enumeration tool.
+    user = await users_collection.find_one({"email": body.email})
+    if user and not user.get("is_verified", True):
+        await _send_verification_link(str(user["_id"]), body.email)
+
+    return {"message": "If an account with that email exists and is unverified, we've sent a new link"}
