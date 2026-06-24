@@ -9,14 +9,7 @@ from utils.auth_rate_limit import (
     enforce_register_rate_limit,
 )
 
-
-@pytest.fixture(autouse=True)
-def reset_auth_rate_limit_state():
-    """Each test gets a clean slate — module-level counters would otherwise
-    bleed between tests since they're shared global state."""
-    auth_rate_limit._reset_state()
-    yield
-    auth_rate_limit._reset_state()
+# Counters are reset between tests by the autouse fixture in tests/conftest.py.
 
 
 def test_login_limit_blocks_after_n_attempts(monkeypatch):

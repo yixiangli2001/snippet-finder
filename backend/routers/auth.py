@@ -3,11 +3,16 @@ import re
 from datetime import datetime, timezone
 
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 
 from database import users_collection
 from models.user import ResetPasswordRequest, UserCreate, UserResponse
+from utils.auth_rate_limit import (
+    enforce_forgot_password_rate_limit,
+    enforce_login_rate_limit,
+    enforce_register_rate_limit,
+)
 from utils.auth_tokens import RESET_PASSWORD_TTL, VERIFY_EMAIL_TTL, consume_auth_token, create_auth_token
 from utils.email import send_reset_email, send_verification_email
 from utils.security import create_token, hash_password, verify_password
@@ -48,7 +53,9 @@ async def _send_verification_link(user_id: str, email: str) -> None:
 
 
 @router.post("/register", response_model=UserResponse)
-async def register(user: UserCreate):
+async def register(user: UserCreate, request: Request):
+    enforce_register_rate_limit(request.client.host)
+
     existing = await users_collection.find_one({
         "$or": [
             {"email": user.email},
@@ -78,7 +85,9 @@ async def register(user: UserCreate):
 
 
 @router.post("/login")
-async def login(credentials: LoginRequest):
+async def login(credentials: LoginRequest, request: Request):
+    enforce_login_rate_limit(f"{request.client.host}:{credentials.email}")
+
     user = await users_collection.find_one({"email": credentials.email})
     if not user or not verify_password(credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -111,7 +120,9 @@ async def resend_verification(body: ResendVerificationRequest):
 
 
 @router.post("/forgot-password")
-async def forgot_password(body: ForgotPasswordRequest):
+async def forgot_password(body: ForgotPasswordRequest, request: Request):
+    enforce_forgot_password_rate_limit(f"{request.client.host}:{body.email}")
+
     # Always return the same response whether or not the email exists —
     # otherwise this endpoint becomes an account-enumeration tool.
     user = await users_collection.find_one({"email": body.email})
