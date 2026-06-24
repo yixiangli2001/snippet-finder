@@ -17,6 +17,7 @@ from utils.auth_tokens import RESET_PASSWORD_TTL, VERIFY_EMAIL_TTL, consume_auth
 from utils.breach_check import is_password_breached
 from utils.email import send_reset_email, send_verification_email
 from utils.security import create_token, hash_password, verify_password
+from utils.turnstile import verify_turnstile_token
 
 router = APIRouter()
 
@@ -57,6 +58,9 @@ async def _send_verification_link(user_id: str, email: str) -> None:
 @router.post("/register", response_model=UserResponse)
 async def register(user: UserCreate, request: Request):
     enforce_register_rate_limit(request.client.host)
+
+    if not await verify_turnstile_token(user.turnstile_token, request.client.host):
+        raise HTTPException(status_code=400, detail="Captcha verification failed")
 
     if await is_password_breached(user.password):
         raise HTTPException(
@@ -130,6 +134,9 @@ async def resend_verification(body: ResendVerificationRequest):
 @router.post("/forgot-password")
 async def forgot_password(body: ForgotPasswordRequest, request: Request):
     enforce_forgot_password_rate_limit(f"{request.client.host}:{body.email}")
+
+    if not await verify_turnstile_token(body.turnstile_token, request.client.host):
+        raise HTTPException(status_code=400, detail="Captcha verification failed")
 
     # Always return the same response whether or not the email exists —
     # otherwise this endpoint becomes an account-enumeration tool.

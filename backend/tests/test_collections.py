@@ -15,6 +15,10 @@ async def _not_breached(password):
     return False
 
 
+async def _turnstile_passes(token, remote_ip=None):
+    return True
+
+
 def setup(monkeypatch, collections=None, snippets=None):
     users = FakeCollection()
     col_collection = FakeCollection(collections or [])
@@ -27,6 +31,7 @@ def setup(monkeypatch, collections=None, snippets=None):
     monkeypatch.setattr(user_lookup, "users_collection", users)
     monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
     monkeypatch.setattr(auth_router, "is_password_breached", _not_breached)
+    monkeypatch.setattr(auth_router, "verify_turnstile_token", _turnstile_passes)
 
     client = TestClient(app)
     return users, col_collection, snippet_collection, client
