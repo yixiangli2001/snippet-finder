@@ -63,6 +63,7 @@ async def get_snippets(
     search: str | None = None,
     language: str | None = None,
     owner_id: str | None = None,
+    is_public: bool | None = None,
     skip: int = 0,
     limit: int = 20,
     current_user: UserInDB | None = Depends(get_optional_user),
@@ -109,6 +110,11 @@ async def get_snippets(
         ]})
     if language:
         filters.append({"language": language})
+    # Optional visibility filter ("Public" / "Private" toggle). It sits on top of
+    # the rules above, so asking for someone else's private snippets still returns
+    # nothing — the public-only filter already excludes them.
+    if is_public is not None:
+        filters.append({"is_public": is_public})
 
     if not filters:
         query = {}
