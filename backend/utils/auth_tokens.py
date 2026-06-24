@@ -35,6 +35,10 @@ async def consume_auth_token(token: str, purpose: str) -> str | None:
     record = await auth_tokens_collection.find_one_and_delete({"token": token, "purpose": purpose})
     if not record:
         return None
-    if record["expires_at"] < datetime.now(timezone.utc):
+    # Real MongoDB returns naive datetimes (the value is UTC, but tzinfo is
+    # stripped on read) — force UTC back on before comparing, or this raises
+    # TypeError against the aware datetime.now(timezone.utc) below.
+    expires_at = record["expires_at"].replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
         return None
     return record["user_id"]
