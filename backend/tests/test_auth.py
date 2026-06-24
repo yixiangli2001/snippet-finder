@@ -1,14 +1,25 @@
 from datetime import datetime, timedelta, timezone
 
+import pytest
 from bson import ObjectId
 from fastapi.testclient import TestClient
 
 import routers.auth as auth_router
+import utils.auth_rate_limit as auth_rate_limit
 import utils.auth_tokens as auth_tokens
 import utils.security as security
 from main import app
 from tests.fakes import FakeCollection
 from utils.security import hash_password
+
+
+@pytest.fixture(autouse=True)
+def reset_auth_rate_limit_state():
+    """Each test gets a clean slate — module-level rate-limit counters would
+    otherwise bleed between tests since they're shared global state."""
+    auth_rate_limit._reset_state()
+    yield
+    auth_rate_limit._reset_state()
 
 
 def use_fake_users(monkeypatch):
@@ -338,3 +349,44 @@ def test_reset_password_rejects_too_short_new_password(monkeypatch):
     response = client.post("/auth/reset-password", json={"token": token, "new_password": "short"})
 
     assert response.status_code == 422
+
+
+# ── Rate limiting ──────────────────────────────────────────────
+
+
+def test_login_is_rate_limited_after_repeated_attempts(monkeypatch):
+    use_fake_users(monkeypatch)
+    monkeypatch.setattr(auth_rate_limit, "LOGIN_LIMIT", 3)
+    client = TestClient(app)
+
+    for _ in range(3):
+        client.post("/auth/login", json={"email": "alice@example.com", "password": "wrongpass"})
+    response = client.post("/auth/login", json={"email": "alice@example.com", "password": "wrongpass"})
+
+    assert response.status_code == 429
+
+
+def test_register_is_rate_limited_after_repeated_attempts(monkeypatch):
+    use_fake_users(monkeypatch)
+    spy_on_emails(monkeypatch)
+    monkeypatch.setattr(auth_rate_limit, "REGISTER_LIMIT", 2)
+    client = TestClient(app)
+
+    register(client, email="one@example.com", username="one")
+    register(client, email="two@example.com", username="two")
+    response = register(client, email="three@example.com", username="three")
+
+    assert response.status_code == 429
+
+
+def test_forgot_password_is_rate_limited_after_repeated_attempts(monkeypatch):
+    use_fake_users(monkeypatch)
+    spy_on_emails(monkeypatch)
+    monkeypatch.setattr(auth_rate_limit, "FORGOT_PASSWORD_LIMIT", 2)
+    client = TestClient(app)
+
+    client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+    client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+    response = client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+
+    assert response.status_code == 429
