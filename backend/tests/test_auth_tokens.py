@@ -46,3 +46,26 @@ async def test_expired_token_is_rejected(monkeypatch):
     result = await consume_auth_token(token, "reset_password")
 
     assert result is None
+
+
+async def test_valid_token_works_when_expires_at_is_a_naive_datetime(monkeypatch):
+    """Real MongoDB returns naive (tzinfo-stripped) datetimes by default, even
+    though they're stored as UTC. consume_auth_token must not crash comparing
+    a naive expires_at against an aware datetime.now(timezone.utc)."""
+    tokens = use_fake_tokens(monkeypatch)
+    token = await create_auth_token("user-1", "verify_email", timedelta(hours=1))
+    tokens.documents[0]["expires_at"] = tokens.documents[0]["expires_at"].replace(tzinfo=None)
+
+    user_id = await consume_auth_token(token, "verify_email")
+
+    assert user_id == "user-1"
+
+
+async def test_expired_token_is_rejected_when_expires_at_is_a_naive_datetime(monkeypatch):
+    tokens = use_fake_tokens(monkeypatch)
+    token = await create_auth_token("user-1", "reset_password", timedelta(hours=-1))
+    tokens.documents[0]["expires_at"] = tokens.documents[0]["expires_at"].replace(tzinfo=None)
+
+    result = await consume_auth_token(token, "reset_password")
+
+    assert result is None
