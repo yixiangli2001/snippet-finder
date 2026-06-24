@@ -1,4 +1,6 @@
-export const API = 'http://127.0.0.1:8000';
+// In production, set VITE_API_URL to your deployed backend (e.g. on Render).
+// Falls back to the local dev server when the variable is not set.
+export const API = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
 
 export const LANGUAGES = [
   'BASH', 'C', 'C++', 'C#', 'CSS', 'DART', 'DOCKER',
