@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 
-import pytest
 from bson import ObjectId
 from fastapi.testclient import TestClient
 
@@ -13,13 +12,8 @@ from tests.fakes import FakeCollection
 from utils.security import hash_password
 
 
-@pytest.fixture(autouse=True)
-def reset_auth_rate_limit_state():
-    """Each test gets a clean slate — module-level rate-limit counters would
-    otherwise bleed between tests since they're shared global state."""
-    auth_rate_limit._reset_state()
-    yield
-    auth_rate_limit._reset_state()
+async def _not_breached(password: str) -> bool:
+    return False
 
 
 def use_fake_users(monkeypatch):
@@ -27,6 +21,9 @@ def use_fake_users(monkeypatch):
     monkeypatch.setattr(auth_router, "users_collection", users)
     monkeypatch.setattr(security, "users_collection", users)
     monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
+    # Default to "not breached" so tests don't depend on network access;
+    # tests that exercise the breach check override this explicitly.
+    monkeypatch.setattr(auth_router, "is_password_breached", _not_breached)
     return users
 
 
@@ -390,3 +387,46 @@ def test_forgot_password_is_rate_limited_after_repeated_attempts(monkeypatch):
     response = client.post("/auth/forgot-password", json={"email": "alice@example.com"})
 
     assert response.status_code == 429
+
+
+# ── Breached-password check ───────────────────────────────────────
+
+
+def test_register_rejects_a_breached_password(monkeypatch):
+    use_fake_users(monkeypatch)
+    spy_on_emails(monkeypatch)
+    monkeypatch.setattr(auth_router, "is_password_breached", lambda password: _async_true())
+    client = TestClient(app)
+
+    response = register(client, password="whateveryouwant")
+
+    assert response.status_code == 400
+
+
+def test_register_allows_a_password_that_is_not_breached(monkeypatch):
+    use_fake_users(monkeypatch)
+    spy_on_emails(monkeypatch)
+    client = TestClient(app)
+
+    response = register(client, password="securepass")
+
+    assert response.status_code == 200
+
+
+def test_reset_password_rejects_a_breached_new_password(monkeypatch):
+    users = use_fake_users(monkeypatch)
+    sent = spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    register(client)
+    verify_user(monkeypatch, users, "alice@example.com")
+    client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+    token = sent["reset"][0]["link"].split("token=")[1]
+    monkeypatch.setattr(auth_router, "is_password_breached", lambda password: _async_true())
+
+    response = client.post("/auth/reset-password", json={"token": token, "new_password": "whateveryouwant"})
+
+    assert response.status_code == 400
+
+
+async def _async_true() -> bool:
+    return True
