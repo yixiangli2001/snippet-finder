@@ -6,8 +6,10 @@ import { AuthModal } from './components/AuthModal';
 import CollectionPage from './components/CollectionPage';
 import CollectionsPage from './components/CollectionsPage';
 import ProfilePage from './components/ProfilePage';
+import ResetPasswordPage from './components/ResetPasswordPage';
 import SettingsPage from './components/SettingsPage';
 import SnippetsPage from './components/SnippetsPage';
+import VerifyEmailPage from './components/VerifyEmailPage';
 import SearchBar from './components/SearchBar';
 import { ChevronDownIcon, CodeIcon, FolderIcon, GearIcon, MoonIcon, SunIcon, UserIcon } from './components/Icons';
 import { useSearch } from './hooks/useSearch';
@@ -154,6 +156,8 @@ export default function App() {
         } />
         <Route path="/users/:username" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/admin" element={
           auth.user?.role === 'admin'
             ? <AdminPanel token={auth.token || ''} currentUserId={auth.user.id} onBack={() => navigate('/snippets')} />
@@ -167,6 +171,8 @@ export default function App() {
         <AuthModal
           onLogin={auth.login}
           onRegister={auth.register}
+          onForgotPassword={auth.forgotPassword}
+          onResendVerification={auth.resendVerification}
           onClose={() => setShowAuth(false)}
         />
       )}
