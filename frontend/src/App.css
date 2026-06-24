@@ -966,6 +966,59 @@
   justify-content: flex-end;
 }
 
+/* Left-hand cluster of filters (scope, visibility, language) */
+.page-toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Segmented control (All / Mine · All / Public / Private) ─ */
+.segmented {
+  display: inline-flex;
+  flex-shrink: 0;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.segmented-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color      var(--duration-fast) var(--ease-out-quart),
+    background var(--duration-fast) var(--ease-out-quart);
+}
+
+.segmented-btn:hover {
+  color: var(--text-h);
+}
+
+/* Selected segment sits on the page surface, contrasting with the subtle track.
+   Flat by design — no shadow (those are reserved for modals/dropdowns). */
+.segmented-btn--active,
+.segmented-btn--active:hover {
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  /* Compensate for the 1px border so the row height stays steady */
+  padding: 0 11px;
+}
+
 /* ── Settings page ───────────────────────────────────────── */
 .settings-page {
   display: flex;

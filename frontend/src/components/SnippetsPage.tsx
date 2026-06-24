@@ -4,6 +4,7 @@ import { useSnippets } from '../hooks/useSnippets';
 import { useLanguages } from '../hooks/useLanguages';
 import CodeSnippet from './CodeSnippet';
 import LanguageFilter from './LanguageFilter';
+import SegmentedFilter from './SegmentedFilter';
 import Pagination from './Pagination';
 import CreateSnippetModal from './CreateSnippetModal';
 
@@ -13,8 +14,10 @@ export default function SnippetsPage() {
     snippets, loading, error,
     page, total, limit, setPage,
     language, setLanguage,
+    scope, setScope,
+    visibility, setVisibility,
     addSnippet, handleCopy, handleDelete, handleEdit, handleToggleVisibility,
-  } = useSnippets(token);
+  } = useSnippets(token, user?.id ?? null);
   const { languages, refreshLanguages } = useLanguages(token);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -53,9 +56,34 @@ export default function SnippetsPage() {
 
   return (
     <>
-      {/* Toolbar: language filter on the left, Add button on the right */}
+      {/* Toolbar: scope/visibility + language filters on the left, Add button on the right */}
       <div className="page-toolbar">
-        <LanguageFilter languages={languages} value={language} onChange={setLanguage} />
+        <div className="page-toolbar-filters">
+          {user && (
+            <SegmentedFilter
+              label="Show snippets"
+              value={scope}
+              onChange={setScope}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'mine', label: 'Mine' },
+              ]}
+            />
+          )}
+          {user && scope === 'mine' && (
+            <SegmentedFilter
+              label="Filter by visibility"
+              value={visibility}
+              onChange={setVisibility}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'public', label: 'Public' },
+                { value: 'private', label: 'Private' },
+              ]}
+            />
+          )}
+          <LanguageFilter languages={languages} value={language} onChange={setLanguage} />
+        </div>
         {user && (
           <button
             className="snippet-btn snippet-btn--primary"

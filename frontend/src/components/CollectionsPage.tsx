@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useCollections } from '../hooks/useCollections';
 import CollectionCard from './CollectionCard';
+import SegmentedFilter from './SegmentedFilter';
 import Pagination from './Pagination';
 import CreateCollectionModal from './CreateCollectionModal';
 
@@ -10,8 +11,10 @@ export default function CollectionsPage() {
   const {
     collections, loading, error,
     page, total, limit, setPage,
+    scope, setScope,
+    visibility, setVisibility,
     addCollection, handleDelete, handleEdit, handleToggleVisibility,
-  } = useCollections(token);
+  } = useCollections(token, user?.id ?? null);
   const [showCreate, setShowCreate] = useState(false);
 
   if (loading) {
@@ -48,9 +51,32 @@ export default function CollectionsPage() {
 
   return (
     <>
-      {/* Toolbar: Add button on the right */}
+      {/* Toolbar: scope/visibility filters on the left, Add button on the right */}
       {user && (
-        <div className="page-toolbar page-toolbar--end">
+        <div className="page-toolbar">
+          <div className="page-toolbar-filters">
+            <SegmentedFilter
+              label="Show collections"
+              value={scope}
+              onChange={setScope}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'mine', label: 'Mine' },
+              ]}
+            />
+            {scope === 'mine' && (
+              <SegmentedFilter
+                label="Filter by visibility"
+                value={visibility}
+                onChange={setVisibility}
+                options={[
+                  { value: 'all', label: 'All' },
+                  { value: 'public', label: 'Public' },
+                  { value: 'private', label: 'Private' },
+                ]}
+              />
+            )}
+          </div>
           <button
             className="snippet-btn snippet-btn--primary"
             onClick={() => setShowCreate(true)}
