@@ -11,6 +11,10 @@ from tests.fakes import FakeCollection
 from utils.security import create_token
 
 
+async def _not_breached(password):
+    return False
+
+
 def setup(monkeypatch, collections=None, snippets=None):
     users = FakeCollection()
     col_collection = FakeCollection(collections or [])
@@ -22,6 +26,7 @@ def setup(monkeypatch, collections=None, snippets=None):
     monkeypatch.setattr(collections_router, "snippets_collection", snippet_collection)
     monkeypatch.setattr(user_lookup, "users_collection", users)
     monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
+    monkeypatch.setattr(auth_router, "is_password_breached", _not_breached)
 
     client = TestClient(app)
     return users, col_collection, snippet_collection, client

@@ -39,6 +39,10 @@ def make_snippet(owner_id, title="My snippet", is_public=True):
     }
 
 
+async def _not_breached(password):
+    return False
+
+
 def setup(monkeypatch, extra_users=None, snippets=None):
     admin = make_user(email="admin@example.com", username="admin", role="admin")
     users = FakeCollection([admin] + (extra_users or []))
@@ -50,6 +54,7 @@ def setup(monkeypatch, extra_users=None, snippets=None):
     monkeypatch.setattr(admin_router, "snippets_collection", snippet_col)
     monkeypatch.setattr(snippets_router, "snippets_collection", snippet_col)
     monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
+    monkeypatch.setattr(auth_router, "is_password_breached", _not_breached)
 
     client = TestClient(app)
     login = client.post(
@@ -88,6 +93,7 @@ def setup_with_registered_admin(monkeypatch, extra_users=None, snippets=None, co
     monkeypatch.setattr(snippets_router, "snippets_collection", snippet_col)
     monkeypatch.setattr(user_lookup, "users_collection", users)
     monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
+    monkeypatch.setattr(auth_router, "is_password_breached", _not_breached)
 
     client = TestClient(app)
     register_and_login(client, "admin@example.com", username="admin")

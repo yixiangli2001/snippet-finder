@@ -35,12 +35,17 @@ def fake_collection(owner_id, name, is_public, snippet_ids=None):
     }
 
 
+async def _not_breached(password):
+    return False
+
+
 def use_fake_users(monkeypatch):
     users = FakeCollection()
     monkeypatch.setattr(auth_router, "users_collection", users)
     monkeypatch.setattr(users_router, "users_collection", users)
     monkeypatch.setattr(security, "users_collection", users)
     monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
+    monkeypatch.setattr(auth_router, "is_password_breached", _not_breached)
     return users
 
 
