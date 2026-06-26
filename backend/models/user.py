@@ -12,6 +12,10 @@ class UserCreate(BaseModel):
     email: EmailStr
     username: str
     password: str
+    # Defaults to "" so existing direct constructions of this model (e.g. in
+    # tests) don't need to know about Turnstile — the register route is what
+    # actually requires and verifies a real token.
+    turnstile_token: str = ""
 
     @field_validator("username")
     @classmethod
@@ -54,6 +58,17 @@ class UpdateEmail(BaseModel):
     email: EmailStr
 
 
+def _validate_new_password(password: str) -> str:
+    stripped_password = password.strip()
+    if not stripped_password:
+        raise ValueError("password must not be empty")
+    if len(stripped_password) < MIN_PASSWORD_CHARACTERS:
+        raise ValueError(f"password must be at least {MIN_PASSWORD_CHARACTERS} characters")
+    if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+        raise ValueError(f"password must be at most {MAX_BCRYPT_PASSWORD_BYTES} bytes")
+    return password
+
+
 class UpdatePassword(BaseModel):
     """Input model for changing the current user's password."""
 
@@ -63,14 +78,19 @@ class UpdatePassword(BaseModel):
     @field_validator("new_password")
     @classmethod
     def new_password_must_be_useful(cls, password: str) -> str:
-        stripped_password = password.strip()
-        if not stripped_password:
-            raise ValueError("password must not be empty")
-        if len(stripped_password) < MIN_PASSWORD_CHARACTERS:
-            raise ValueError(f"password must be at least {MIN_PASSWORD_CHARACTERS} characters")
-        if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
-            raise ValueError(f"password must be at most {MAX_BCRYPT_PASSWORD_BYTES} bytes")
-        return password
+        return _validate_new_password(password)
+
+
+class ResetPasswordRequest(BaseModel):
+    """Input model for completing a password reset via emailed token."""
+
+    token: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def new_password_must_be_useful(cls, password: str) -> str:
+        return _validate_new_password(password)
 
 
 class UserResponse(BaseModel):
@@ -80,6 +100,9 @@ class UserResponse(BaseModel):
     email: str
     username: str
     role: str = "user"
+    # Default True covers legacy accounts created before email verification
+    # shipped — they never had a chance to verify, so they aren't punished.
+    is_verified: bool = True
     created_at: datetime
     updated_at: datetime
 
@@ -101,6 +124,7 @@ class UserInDB(BaseModel):
     username: str
     password_hash: str
     role: str = "user"
+    is_verified: bool = True
     created_at: datetime
     updated_at: datetime
 

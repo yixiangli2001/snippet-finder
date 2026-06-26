@@ -80,6 +80,7 @@ def test_user_response_contains_only_safe_public_fields():
         "email": "alice@example.com",
         "username": "alice",
         "role": "user",
+        "is_verified": True,
         "created_at": now,
         "updated_at": now,
     }

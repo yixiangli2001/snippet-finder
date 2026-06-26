@@ -4,6 +4,7 @@ import routers.auth as auth_router
 import routers.collections as collections_router
 import routers.snippets as snippets_router
 import routers.users as users_router
+import utils.auth_tokens as auth_tokens
 import utils.security as security
 from main import app
 from tests.fakes import FakeCollection
@@ -34,11 +35,22 @@ def fake_collection(owner_id, name, is_public, snippet_ids=None):
     }
 
 
+async def _not_breached(password):
+    return False
+
+
+async def _turnstile_passes(token, remote_ip=None):
+    return True
+
+
 def use_fake_users(monkeypatch):
     users = FakeCollection()
     monkeypatch.setattr(auth_router, "users_collection", users)
     monkeypatch.setattr(users_router, "users_collection", users)
     monkeypatch.setattr(security, "users_collection", users)
+    monkeypatch.setattr(auth_tokens, "auth_tokens_collection", FakeCollection())
+    monkeypatch.setattr(auth_router, "is_password_breached", _not_breached)
+    monkeypatch.setattr(auth_router, "verify_turnstile_token", _turnstile_passes)
     return users
 
 
@@ -65,6 +77,11 @@ def register_and_login(client, email="alice@example.com", username="alice"):
         "/auth/register",
         json={"email": email, "username": username, "password": "securepass"},
     )
+    # Registration leaves the account unverified; these tests are about other
+    # behavior, so mark it verified directly rather than going through email.
+    for user in auth_router.users_collection.documents:
+        if user["email"] == email:
+            user["is_verified"] = True
     login = client.post(
         "/auth/login",
         json={"email": email, "password": "securepass"},

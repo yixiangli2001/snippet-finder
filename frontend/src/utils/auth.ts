@@ -33,3 +33,19 @@ export function clearStoredAuth() {
 export function authHeaders(token: string | null): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
+
+// Carries the HTTP status alongside the message so callers can branch on it
+// (e.g. distinguishing a 403 "verify your email" login failure from a 401).
+export class HttpError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
+export async function throwHttpError(res: Response, fallback: string): Promise<never> {
+  const body = await res.json().catch(() => ({}));
+  const detail = Array.isArray(body.detail) ? body.detail[0]?.msg : body.detail;
+  throw new HttpError(detail || fallback, res.status);
+}
