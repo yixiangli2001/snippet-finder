@@ -315,6 +315,23 @@ def test_reset_password_with_valid_token_changes_password(monkeypatch):
     assert new_login.status_code == 200
 
 
+def test_reset_password_verifies_an_unverified_account(monkeypatch):
+    """Clicking the emailed reset link proves email ownership, so an unverified
+    user who completes a reset should be able to log in straight away rather
+    than still being blocked by the verification check."""
+    use_fake_users(monkeypatch)
+    sent = spy_on_emails(monkeypatch)
+    client = TestClient(app)
+    register(client)  # leaves the account unverified
+    client.post("/auth/forgot-password", json={"email": "alice@example.com"})
+    token = sent["reset"][0]["link"].split("token=")[1]
+
+    client.post("/auth/reset-password", json={"token": token, "new_password": "newsecurepass"})
+
+    login = client.post("/auth/login", json={"email": "alice@example.com", "password": "newsecurepass"})
+    assert login.status_code == 200
+
+
 def test_reset_password_token_is_single_use(monkeypatch):
     users = use_fake_users(monkeypatch)
     sent = spy_on_emails(monkeypatch)

@@ -160,8 +160,11 @@ async def reset_password(body: ResetPasswordRequest):
     if not user_id:
         raise HTTPException(status_code=400, detail="Invalid or expired reset link")
 
+    # Clicking the emailed reset link proves email ownership just as strongly
+    # as the verification link, so verify the account here too — otherwise an
+    # unverified user could reset their password and still be blocked at login.
     await users_collection.update_one(
         {"_id": ObjectId(user_id)},
-        {"$set": {"password_hash": hash_password(body.new_password)}},
+        {"$set": {"password_hash": hash_password(body.new_password), "is_verified": True}},
     )
     return {"message": "Password updated"}
