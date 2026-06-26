@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
@@ -8,6 +8,10 @@ export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState('');
+  // The verify token is single-use, so the request must fire exactly once.
+  // StrictMode runs effects twice in dev; without this guard the second run
+  // would consume an already-spent token and report a false "failed".
+  const verifiedToken = useRef<string | null>(null);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -16,6 +20,8 @@ export default function VerifyEmailPage() {
       setError('This verification link is missing its token.');
       return;
     }
+    if (verifiedToken.current === token) return;
+    verifiedToken.current = token;
     auth.verifyEmail(token)
       .then(() => setStatus('success'))
       .catch((err: Error) => {
