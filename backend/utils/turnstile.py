@@ -27,7 +27,8 @@ async def verify_turnstile_token(token: str, remote_ip: str | None = None) -> bo
                 timeout=5,
             )
             response.raise_for_status()
-    except httpx.HTTPError:
+            # Parse inside the try so a 200 with an unexpected/non-JSON body
+            # also fails closed rather than 500-ing the caller.
+            return bool(response.json().get("success"))
+    except (httpx.HTTPError, ValueError):
         return False
-
-    return bool(response.json().get("success"))

@@ -33,6 +33,24 @@ async def test_returns_false_when_cloudflare_reports_failure(monkeypatch):
     assert await verify_turnstile_token("bad-token", "1.2.3.4") is False
 
 
+async def test_fails_closed_when_response_is_not_json(monkeypatch):
+    """A 200 with an unexpected, non-JSON body must fail closed rather than
+    crash the caller — json() raising should be treated as 'not verified'."""
+    class NonJsonResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            raise ValueError("not json")
+
+    async def fake_post(self, url, data=None, timeout=None):
+        return NonJsonResponse()
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", fake_post)
+
+    assert await verify_turnstile_token("any-token", "1.2.3.4") is False
+
+
 async def test_fails_closed_when_cloudflare_is_unreachable(monkeypatch):
     """Unlike the breach check, a CAPTCHA must fail closed — if we can't
     verify the token, treat the request as unverified rather than letting
