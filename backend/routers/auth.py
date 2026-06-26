@@ -42,6 +42,12 @@ class ForgotPasswordRequest(BaseModel):
     turnstile_token: str = ""
 
 
+def client_host(request: Request) -> str:
+    """The caller's IP, used as a rate-limit key. Some ASGI servers leave
+    request.client unset, so fall back to a constant rather than crashing."""
+    return request.client.host if request.client else "unknown"
+
+
 def format_user(user: dict) -> dict:
     formatted = {**user, "id": str(user["_id"])}
     del formatted["_id"]
@@ -57,9 +63,9 @@ async def _send_verification_link(user_id: str, email: str) -> None:
 
 @router.post("/register", response_model=UserResponse)
 async def register(user: UserCreate, request: Request):
-    enforce_register_rate_limit(request.client.host)
+    enforce_register_rate_limit(client_host(request))
 
-    if not await verify_turnstile_token(user.turnstile_token, request.client.host):
+    if not await verify_turnstile_token(user.turnstile_token, client_host(request)):
         raise HTTPException(status_code=400, detail="Captcha verification failed")
 
     if await is_password_breached(user.password):
@@ -98,7 +104,7 @@ async def register(user: UserCreate, request: Request):
 
 @router.post("/login")
 async def login(credentials: LoginRequest, request: Request):
-    enforce_login_rate_limit(f"{request.client.host}:{credentials.email}")
+    enforce_login_rate_limit(f"{client_host(request)}:{credentials.email}")
 
     user = await users_collection.find_one({"email": credentials.email})
     if not user or not verify_password(credentials.password, user["password_hash"]):
@@ -133,9 +139,9 @@ async def resend_verification(body: ResendVerificationRequest):
 
 @router.post("/forgot-password")
 async def forgot_password(body: ForgotPasswordRequest, request: Request):
-    enforce_forgot_password_rate_limit(f"{request.client.host}:{body.email}")
+    enforce_forgot_password_rate_limit(f"{client_host(request)}:{body.email}")
 
-    if not await verify_turnstile_token(body.turnstile_token, request.client.host):
+    if not await verify_turnstile_token(body.turnstile_token, client_host(request)):
         raise HTTPException(status_code=400, detail="Captcha verification failed")
 
     # Always return the same response whether or not the email exists —
