@@ -22,6 +22,10 @@ export function AuthModal({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
+  // Bumping this remounts the Turnstile widget for a fresh challenge. A
+  // Turnstile token is single-use, so after a failed submit the old token is
+  // spent — without a reset the retry reuses it and Cloudflare rejects it.
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   // 403 on login means the account exists but isn't verified yet — offer to resend the link.
@@ -68,6 +72,10 @@ export function AuthModal({
         setNeedsVerification(true);
       }
       setError((err as Error).message);
+      // The Turnstile token (if any) was consumed by the rejected request;
+      // reset the widget so the user can retry with a fresh one.
+      setTurnstileToken('');
+      setTurnstileKey((key) => key + 1);
     } finally {
       setSaving(false);
     }
@@ -148,7 +156,7 @@ export function AuthModal({
                 </div>
               )}
               {(view === 'sign up' || view === 'forgot password') && (
-                <TurnstileWidget onVerify={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
+                <TurnstileWidget key={turnstileKey} onVerify={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
               )}
             </div>
 
